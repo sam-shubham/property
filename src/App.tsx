@@ -136,7 +136,7 @@ function App() {
         scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
       }`}>
         <div className="container mx-auto flex items-center justify-between px-4">
-          <Link to="/" className="text-xl font-bold text-white">
+          <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>
             PropertyPrime
           </Link>
           
