@@ -677,29 +677,37 @@ function App() {
         </div>
       </section>
 
-      {/* Call to action before footer */}
-      <section className="py-12 bg-emerald-600 text-white">
-        <div className="mx-auto max-w-5xl px-4 md:px-6 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Find Your Dream Property?</h2>
+      {/* Call to action before footer - FIXED BUTTON ISSUE */}
+      <section className="py-12 bg-gradient-to-r from-emerald-700 to-emerald-500 text-white relative overflow-hidden">
+        {/* Background pattern for visual interest */}
+        <div className="absolute inset-0 bg-[url('/images/dots.svg')] bg-repeat opacity-10"></div>
+        
+        <div className="mx-auto max-w-5xl px-4 md:px-6 text-center relative z-10">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 animate-pulse">Ready to Find Your Dream Property?</h2>
           <p className="text-emerald-50 mb-8 max-w-3xl mx-auto">
             Join thousands of satisfied customers who found their perfect homes with PropertyPrime.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              className="bg-white text-emerald-700 hover:bg-emerald-50 transition-all duration-300 hover:shadow-lg"
+              variant="secondary"
+              className="!bg-white !text-emerald-700 hover:!bg-emerald-50 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1"
             >
               Start Searching
             </Button>
             <Button 
               size="lg" 
               variant="outline"
-              className="bg-transparent border-white text-white hover:bg-white/10 transition-all duration-300"
+              className="!border-white !text-white hover:!bg-white/10 transition-all duration-300"
             >
               List Your Property
             </Button>
           </div>
         </div>
+      
+        {/* Add animated floating elements */}
+        <div className="absolute -left-16 -top-16 w-32 h-32 bg-white/5 rounded-full"></div>
+        <div className="absolute -right-16 -bottom-16 w-32 h-32 bg-white/5 rounded-full"></div>
       </section>
 
       {/* Enhanced Popup Contact Form */}
