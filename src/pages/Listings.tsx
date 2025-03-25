@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, Filter, ChevronDown, Heart, MapPin, ArrowRight, Star, Menu, Building2, Building, Home
@@ -35,12 +35,15 @@ export const Listings = () => {
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
 
   // Scroll handler
-  useState(() => {
+  useEffect(() => {
     const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
     };
+    // Call it once to set initial state
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">

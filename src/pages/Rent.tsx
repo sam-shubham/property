@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Filter, Search, ChevronDown, Home, Building2, ArrowRight, Sparkles } from 'lucide-react';
+import { Filter, Search, ChevronDown, Home, Building2, ArrowRight, Sparkles, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SAMPLE_PROPERTIES = Array(6).fill({
@@ -25,9 +25,88 @@ const SAMPLE_PROPERTIES = Array(6).fill({
 export const Rent = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+      {/* Header - same as other pages */}
+      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
+      }`}>
+        <div className="container mx-auto flex items-center justify-between px-4">
+          <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>
+            PropertyPrime
+          </Link>
+          
+          <nav className="hidden md:flex space-x-8">
+            {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
+              <Link 
+                key={item}
+                to={`/${item.toLowerCase().replace(' ', '-')}`} 
+                className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
+              >
+                {item}
+              </Link>
+            ))}
+          </nav>
+          
+          <div className="hidden md:flex items-center gap-3">
+            <Link
+              to="/login"
+              className={`text-sm ${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'}`}
+            >
+              Log in
+            </Link>
+            <Link
+              to="/signup"
+              className={`text-sm px-4 py-2 ${scrolled ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600'} rounded-full hover:bg-opacity-90 transition-colors`}
+            >
+              Sign up
+            </Link>
+          </div>
+          
+          <button 
+            className={`md:hidden ${scrolled ? 'text-gray-600' : 'text-white'}`}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+        
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 px-4 bg-white animate-slideDown border-t border-gray-100">
+            <nav className="flex flex-col space-y-3">
+              {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
+                <Link 
+                  key={item}
+                  to={`/${item.toLowerCase().replace(' ', '-')}`} 
+                  className="text-gray-600 py-2"
+                >
+                  {item}
+                </Link>
+              ))}
+              <div className="flex gap-2 pt-3 border-t border-gray-100">
+                <Link to="/login" className="flex-1 text-center py-2">Login</Link>
+                <Link to="/signup" className="flex-1 bg-indigo-600 text-white rounded-md py-2 text-center">
+                  Sign Up
+                </Link>
+              </div>
+            </nav>
+          </div>
+        )}
+      </header>
+
       {/* Hero section */}
       <section className="relative py-16 md:py-24">
         <div className="absolute inset-0 z-0">
