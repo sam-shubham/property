@@ -9,6 +9,10 @@ import { Sell } from './pages/Sell';
 import { Listings } from './pages/Listings';
 import { TopBuilders } from './pages/TopBuilders';
 import { PropertyDetails } from './pages/PropertyDetails';
+import { Apartments } from './pages/projects/Apartments';
+import { BuilderFloors } from './pages/projects/BuilderFloors';
+import { Villas } from './pages/projects/Villas';
+import { FarmHouses } from './pages/projects/FarmHouses';
 import './index.css';
 
 const router = createBrowserRouter([
@@ -39,6 +43,23 @@ const router = createBrowserRouter([
   {
     path: '/property/:id',
     element: <PropertyDetails />,
+  },
+  // Project subcategory routes
+  {
+    path: '/projects/apartments',
+    element: <Apartments />,
+  },
+  {
+    path: '/projects/builder-floors',
+    element: <BuilderFloors />,
+  },
+  {
+    path: '/projects/villas',
+    element: <Villas />,
+  },
+  {
+    path: '/projects/farm-houses',
+    element: <FarmHouses />,
   },
 ]);
 
