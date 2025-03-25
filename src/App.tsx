@@ -109,7 +109,7 @@ function App() {
     priceRange: 'any',
     bedrooms: 'any',
     propertyType: 'any',
-    amenities: []
+    amenities: [] as string[]
   });
 
   return (
@@ -418,17 +418,7 @@ function App() {
             ))}
           </div>
 
-          <div className="rounded-lg bg-blue-600 p-8 text-center text-white">
-            <h2 className="mb-4 text-2xl font-bold">Join Our Team</h2>
-            <p className="mb-6">
-              Are you a real estate professional looking to take your career to the
-              next level? Join PropertyPrime and get access to exclusive listings and
-              qualified leads.
-            </p>
-            <Button className="bg-white text-blue-600 hover:bg-blue-50">
-              Apply Now
-            </Button>
-          </div>
+         
         </div>
       </section>
 
