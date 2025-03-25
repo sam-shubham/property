@@ -13,6 +13,8 @@ import { Apartments } from './pages/projects/Apartments';
 import { BuilderFloors } from './pages/projects/BuilderFloors';
 import { Villas } from './pages/projects/Villas';
 import { FarmHouses } from './pages/projects/FarmHouses';
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
 import './index.css';
 
 const router = createBrowserRouter([
@@ -60,6 +62,14 @@ const router = createBrowserRouter([
   {
     path: '/projects/farm-houses',
     element: <FarmHouses />,
+  },
+  {
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/signup',
+    element: <Signup />,
   },
 ]);
 
