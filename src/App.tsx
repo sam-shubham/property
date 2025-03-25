@@ -335,7 +335,11 @@ function App() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[SAMPLE_PROPERTY, SAMPLE_PROPERTY, SAMPLE_PROPERTY].map((property, index) => (
-              <div key={index} className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+              <Link 
+                key={index} 
+                to={`/property/${property.id}`}
+                className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all"
+              >
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src={property.images[0]}
@@ -347,9 +351,9 @@ function App() {
                       Premium
                     </div>
                   )}
-                  <button className="absolute top-3 right-3 bg-white/90 rounded-full p-1.5 text-gray-600 hover:text-red-500 transition-colors">
+                  <div className="absolute top-3 right-3 bg-white/90 rounded-full p-1.5 text-gray-600 hover:text-red-500 transition-colors">
                     <Heart className="h-4 w-4" />
-                  </button>
+                  </div>
                 </div>
                 
                 <div className="p-5">
@@ -372,7 +376,7 @@ function App() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
