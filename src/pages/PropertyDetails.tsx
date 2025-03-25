@@ -1,6 +1,12 @@
-import { Layout } from '../components/Layout';
-import { Heart, Share2, MapPin, Bed, Bath, Square, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { 
+  Heart, Share2, MapPin, Bed, Bath, Square, 
+  CheckCircle, Calendar, ArrowLeft, Phone, Menu,
+  ChevronDown, ChevronRight, X
+} from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
 const PROPERTY = {
   id: '1',
@@ -16,7 +22,8 @@ const PROPERTY = {
   images: [
     'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'
+    'https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'
   ],
   features: [
     'Swimming Pool',
@@ -31,146 +38,101 @@ const PROPERTY = {
   verified: true,
   premium: true,
   createdAt: '2024-02-25T10:00:00Z',
-  updatedAt: '2024-02-25T10:00:00Z'
+  updatedAt: '2024-02-25T10:00:00Z',
+  agent: {
+    name: "Priya Singh",
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80",
+    phone: "+91 98765 43210",
+    rating: 4.9,
+    reviews: 42
+  }
 };
 
 export const PropertyDetails = () => {
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [activeImage, setActiveImage] = useState(0);
+  const [showAllImages, setShowAllImages] = useState(false);
+
+  // Similar scroll handler as in App.tsx
+  useState(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  });
+
   return (
-    <Layout>
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="mb-2 text-3xl font-bold text-slate-900">
-                {PROPERTY.title}
-              </h1>
-              <div className="flex items-center gap-2 text-slate-600">
-                <MapPin className="h-5 w-5" />
-                <span>{PROPERTY.location}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" className="gap-2">
-                <Heart className="h-5 w-5" />
-                Save
-              </Button>
-              <Button variant="ghost" className="gap-2">
-                <Share2 className="h-5 w-5" />
-                Share
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-8 grid gap-4 lg:grid-cols-2">
-          <div className="overflow-hidden rounded-lg">
-            <img
-              src={PROPERTY.images[0]}
-              alt={PROPERTY.title}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {PROPERTY.images.slice(1).map((image, index) => (
-              <div key={index} className="overflow-hidden rounded-lg">
-                <img
-                  src={image}
-                  alt={`${PROPERTY.title} - View ${index + 2}`}
-                  className="h-full w-full object-cover"
-                />
-              </div>
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+      {/* Same header as App.tsx for consistency */}
+      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
+      }`}>
+        <div className="container mx-auto flex items-center justify-between px-4">
+          <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-indigo-600'}`}>
+            PropertyPrime
+          </Link>
+          
+          <nav className="hidden md:flex space-x-8">
+            {['Buy', 'Rent', 'Sell', 'Insights'].map((item) => (
+              <Link 
+                key={item}
+                to={`/${item.toLowerCase()}`} 
+                className="text-gray-600 hover:text-indigo-600 text-sm font-medium transition-colors"
+              >
+                {item}
+              </Link>
             ))}
+          </nav>
+          
+          <div className="hidden md:flex items-center gap-3">
+            <Link
+              to="/login"
+              className="text-sm text-gray-600 hover:text-indigo-600"
+            >
+              Log in
+            </Link>
+            <Link
+              to="/signup"
+              className="text-sm px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
+            >
+              Sign up
+            </Link>
           </div>
+          
+          <button 
+            className="md:hidden text-gray-600"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
         </div>
-
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <div className="mb-8 rounded-lg bg-white p-6 shadow-md">
-              <h2 className="mb-4 text-2xl font-semibold">Property Details</h2>
-              <div className="mb-6 grid grid-cols-3 gap-4">
-                <div className="flex items-center gap-2">
-                  <Bed className="h-5 w-5 text-slate-400" />
-                  <span>{PROPERTY.bedrooms} Bedrooms</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Bath className="h-5 w-5 text-slate-400" />
-                  <span>{PROPERTY.bathrooms} Bathrooms</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Square className="h-5 w-5 text-slate-400" />
-                  <span>{PROPERTY.area} sq.ft</span>
-                </div>
+        
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 px-4 bg-white animate-slideDown border-t border-gray-100">
+            <nav className="flex flex-col space-y-3">
+              {['Buy', 'Rent', 'Sell', 'Insights'].map((item) => (
+                <Link 
+                  key={item}
+                  to={`/${item.toLowerCase()}`} 
+                  className="text-gray-600 py-2"
+                >
+                  {item}
+                </Link>
+              ))}
+              <div className="flex gap-2 pt-3 border-t border-gray-100">
+                <Link to="/login" className="flex-1 text-center py-2">Login</Link>
+                <Link to="/signup" className="flex-1 bg-indigo-600 text-white rounded-md py-2 text-center">
+                  Sign Up
+                </Link>
               </div>
-              <p className="text-slate-600">{PROPERTY.description}</p>
-            </div>
-
-            <div className="mb-8 rounded-lg bg-white p-6 shadow-md">
-              <h2 className="mb-4 text-2xl font-semibold">Features & Amenities</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {PROPERTY.features.map((feature) => (
-                  <div key={feature} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            </nav>
           </div>
-
-          <div className="rounded-lg bg-white p-6 shadow-md">
-            <div className="mb-6">
-              <span className="text-3xl font-bold text-blue-600">
-                ₹{PROPERTY.price.toLocaleString()}
-              </span>
-              {PROPERTY.type === 'rent' && <span className="text-slate-600">/month</span>}
-            </div>
-            <form className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full rounded-md border border-slate-200 px-3 py-2"
-                  placeholder="Enter your name"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  className="w-full rounded-md border border-slate-200 px-3 py-2"
-                  placeholder="Enter your email"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  className="w-full rounded-md border border-slate-200 px-3 py-2"
-                  placeholder="Enter your phone number"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Message
-                </label>
-                <textarea
-                  className="w-full rounded-md border border-slate-200 px-3 py-2"
-                  rows={4}
-                  placeholder="I'm interested in this property..."
-                />
-              </div>
-              <Button className="w-full">Contact Agent</Button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </Layout>
+        )}
+      </header>
+    </div>
   );
 };
