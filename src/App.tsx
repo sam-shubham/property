@@ -131,12 +131,12 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      {/* Minimal header with subtle transparency */}
+      {/* Minimal header with improved visibility */}
       <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
       }`}>
         <div className="container mx-auto flex items-center justify-between px-4">
-          <Link to="/" className="text-xl font-bold text-indigo-600">
+          <Link to="/" className="text-xl font-bold text-white">
             PropertyPrime
           </Link>
           
@@ -145,7 +145,7 @@ function App() {
               <Link 
                 key={item}
                 to={`/${item.toLowerCase()}`} 
-                className="text-gray-600 hover:text-indigo-600 text-sm font-medium transition-colors"
+                className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
               >
                 {item}
               </Link>
@@ -155,27 +155,27 @@ function App() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               to="/login"
-              className="text-sm text-gray-600 hover:text-indigo-600"
+              className={`text-sm ${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'}`}
             >
               Log in
             </Link>
             <Link
               to="/signup"
-              className="text-sm px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
+              className={`text-sm px-4 py-2 ${scrolled ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600'} rounded-full hover:bg-opacity-90 transition-colors`}
             >
               Sign up
             </Link>
           </div>
           
           <button 
-            className="md:hidden text-gray-600"
+            className={`md:hidden ${scrolled ? 'text-gray-600' : 'text-white'}`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <Menu className="h-5 w-5" />
           </button>
         </div>
         
-        {/* Mobile menu - simplified */}
+        {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 px-4 bg-white animate-slideDown border-t border-gray-100">
             <nav className="flex flex-col space-y-3">
