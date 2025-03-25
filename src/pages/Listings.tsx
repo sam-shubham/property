@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Search, Filter, ChevronDown, Heart, MapPin, ArrowRight, Star, Menu
+  Search, Filter, ChevronDown, Heart, MapPin, ArrowRight, Star, Menu, Building2, Building, Home
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
@@ -30,11 +30,13 @@ export const Listings = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [filterType, setFilterType] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
 
   // Scroll handler
   useState(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -120,94 +122,195 @@ export const Listings = () => {
             alt="Property listings"
           />
         </div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-2xl">
-            <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-4 animate-fadeInUp">
-              Explore All Property Listings
-            </h1>
-            <p className="text-white/90 text-lg mb-8 animate-fadeInUp" style={{animationDelay: '100ms'}}>
-              Browse our comprehensive collection of properties for sale and rent
-            </p>
-            
-            {/* Search box */}
-            <div className="bg-white rounded-xl shadow-lg p-3 mb-8 animate-fadeInUp" style={{animationDelay: '200ms'}}>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search by location, property name, ID..."
-                    className="w-full pl-10 pr-3 py-3 rounded-lg text-sm border-none focus:ring-0"
-                  />
-                </div>
-                <button className="bg-indigo-600 text-white px-5 py-3 rounded-lg text-sm font-medium flex items-center hover:bg-indigo-700 transition-colors">
-                  Search
-                </button>
-              </div>
+        
+        {/* Main container with max-width to prevent stretching too wide */}
+        <div className="container mx-auto px-6 relative z-10 max-w-7xl"> {/* Increased padding and added max-width */}
+          <div className="flex flex-col md:flex-row gap-10 md:items-start"> {/* Changed to items-start */}
+            {/* Left side - Title and search */}
+            <div className="md:flex-1 max-w-full md:max-w-[520px]"> {/* Adjusted max-width */}
+              <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-4 animate-fadeInUp">
+                Explore All Property Listings
+              </h1>
+              <p className="text-white/90 text-lg mb-8 animate-fadeInUp" style={{animationDelay: '100ms'}}>
+                Browse our comprehensive collection of properties for sale and rent
+              </p>
               
-              <div className="flex justify-between items-center pt-3">
-                <button 
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="text-sm text-gray-500 hover:text-indigo-600 flex items-center transition-colors"
-                >
-                  <Filter className="h-3 w-3 mr-1" />
-                  Advanced Filters
-                  <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                </button>
+              {/* Search box with improved spacing */}
+              <div className="bg-white rounded-xl shadow-lg p-4 mb-8 animate-fadeInUp" style={{animationDelay: '200ms'}}> {/* Increased padding */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by location, property name, ID..."
+                      className="w-full pl-10 pr-3 py-3 rounded-lg text-sm border-none focus:ring-0"
+                    />
+                  </div>
+                  <button className="bg-indigo-600 text-white px-5 py-3 rounded-lg text-sm font-medium flex items-center hover:bg-indigo-700 transition-colors">
+                    Search
+                  </button>
+                </div>
                 
-                <div className="flex gap-2">
-                  {['All', 'Sale', 'Rent'].map(type => (
-                    <button
-                      key={type}
-                      className={`text-xs px-3 py-1 rounded-full transition-colors ${
-                        filterType === type.toLowerCase() 
-                          ? 'bg-indigo-100 text-indigo-600' 
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                      }`}
-                      onClick={() => setFilterType(type.toLowerCase())}
-                    >
-                      {type}
-                    </button>
-                  ))}
+                <div className="flex justify-between items-center pt-3">
+                  <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="text-sm text-gray-500 hover:text-indigo-600 flex items-center transition-colors"
+                  >
+                    <Filter className="h-3 w-3 mr-1" />
+                    Advanced Filters
+                    <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  <div className="flex gap-2">
+                    {['All', 'Sale', 'Rent'].map(type => (
+                      <button
+                        key={type}
+                        className={`text-xs px-3 py-1 rounded-full transition-colors ${
+                          filterType === type.toLowerCase() 
+                            ? 'bg-indigo-100 text-indigo-600' 
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        }`}
+                        onClick={() => setFilterType(type.toLowerCase())}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+                
+                {/* Advanced filters */}
+                {showFilters && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 mt-3 border-t border-gray-100 animate-fadeIn">
+                    <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                      <option>Any Type</option>
+                      <option>Apartment</option>
+                      <option>House</option>
+                      <option>Villa</option>
+                      <option>Commercial</option>
+                      <option>Plot</option>
+                    </select>
+                    
+                    <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                      <option>Any Price</option>
+                      <option>Under ₹50L</option>
+                      <option>₹50L - ₹1Cr</option>
+                      <option>₹1Cr - ₹2Cr</option>
+                      <option>Above ₹2Cr</option>
+                    </select>
+                    
+                    <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                      <option>Any BHK</option>
+                      <option>1 BHK</option>
+                      <option>2 BHK</option>
+                      <option>3 BHK</option>
+                      <option>4+ BHK</option>
+                    </select>
+                    
+                    <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                      <option>Any City</option>
+                      <option>Bangalore</option>
+                      <option>Mumbai</option>
+                      <option>Delhi</option>
+                      <option>Hyderabad</option>
+                      <option>Chennai</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Center spacer */}
+            <div className="hidden md:block md:w-10"></div> {/* Added spacer */}
+            
+            {/* Right side - Categories with proper spacing */}
+            <div className="md:w-[340px] pr-0 md:pr-4 animate-fadeInRight" style={{animationDelay: '300ms'}}> {/* Added right padding */}
+              <h2 className="text-xl font-medium text-white mb-5">Categories</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { 
+                    id: 'projects', 
+                    label: 'Projects', 
+                    icon: Building2,
+                    subMenu: [
+                      { id: 'apartments', label: 'Apartments' },
+                      { id: 'builder-floors', label: 'Builder Floors' },
+                      { id: 'villas', label: 'Villas' },
+                      { id: 'farm-houses', label: 'Farm Houses' }
+                    ]
+                  },
+                  { id: 'flats', label: 'Flats', icon: Building },
+                  { id: 'plots', label: 'Plots', icon: MapPin },
+                  { 
+                    id: 'best-locations', 
+                    label: 'Best Locations', 
+                    icon: Home,
+                    onClick: () => {
+                      setShowLocationDropdown(!showLocationDropdown);
+                      setActiveCategory('best-locations');
+                    }
+                  }
+                ].map((category) => (
+                  <div key={category.id} className="relative group">
+                    <button
+                      className={`flex flex-col items-center justify-center w-full p-5 rounded-xl text-sm transition-all ${
+                        activeCategory === category.id
+                          ? 'bg-indigo-600 text-white shadow-md transform scale-[1.02]' /* Added subtle scale */
+                          : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
+                      }`}
+                      onClick={() => {
+                        if (category.onClick) {
+                          category.onClick();
+                        } else if (category.subMenu) {
+                          setOpenSubMenu(openSubMenu === category.id ? null : category.id);
+                          setActiveCategory(category.id);
+                        } else {
+                          setActiveCategory(category.id);
+                          setOpenSubMenu(null);
+                        }
+                      }}
+                    >
+                      <category.icon className="h-8 w-8 mb-3" />
+                      <span className="text-base font-medium">{category.label}</span>
+                    </button>
+                    
+                    {/* Updated submenu position */}
+                    {category.subMenu && (
+                      <div className="absolute z-30 left-0 right-0 top-full mt-2 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        <div className="p-2 space-y-1">
+                          {category.subMenu.map(subItem => (
+                            <Link 
+                              key={subItem.id}
+                              to={`/projects/${subItem.id}`}
+                              className="block w-full text-left px-3 py-2 text-sm rounded hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                            >
+                              {subItem.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
               
-              {/* Advanced filters */}
-              {showFilters && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 mt-3 border-t border-gray-100 animate-fadeIn">
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Any Type</option>
-                    <option>Apartment</option>
-                    <option>House</option>
-                    <option>Villa</option>
-                    <option>Commercial</option>
-                    <option>Plot</option>
-                  </select>
-                  
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Any Price</option>
-                    <option>Under ₹50L</option>
-                    <option>₹50L - ₹1Cr</option>
-                    <option>₹1Cr - ₹2Cr</option>
-                    <option>Above ₹2Cr</option>
-                  </select>
-                  
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Any BHK</option>
-                    <option>1 BHK</option>
-                    <option>2 BHK</option>
-                    <option>3 BHK</option>
-                    <option>4+ BHK</option>
-                  </select>
-                  
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Any City</option>
-                    <option>Bangalore</option>
-                    <option>Mumbai</option>
-                    <option>Delhi</option>
-                    <option>Hyderabad</option>
-                    <option>Chennai</option>
-                  </select>
+              {/* Location dropdown with improved styling */}
+              {showLocationDropdown && (
+                <div className="mt-4 p-4 bg-white rounded-lg shadow-lg animate-fadeIn"> {/* Increased padding */}
+                  <p className="text-sm font-medium text-gray-800 mb-3">Popular cities</p> {/* Improved typography */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Bangalore', 'Mumbai', 'Delhi', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad'].map((city) => (
+                      <button
+                        key={city}
+                        className="text-xs p-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                        onClick={() => {
+                          // Filter by city logic here
+                          setShowLocationDropdown(false);
+                        }}
+                      >
+                        {city}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
