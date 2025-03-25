@@ -140,11 +140,11 @@ function App() {
             PropertyPrime
           </Link>
           
-          <nav className="hidden md:flex space-x-8">
-            {['Buy', 'Rent', 'Sell', 'Insights'].map((item) => (
+          <nav className="hidden md:flex space-x-8 items-center">
+            {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
               <Link 
                 key={item}
-                to={`/${item.toLowerCase()}`} 
+                to={`/${item.toLowerCase().replace(' ', '-')}`} 
                 className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
               >
                 {item}
@@ -179,10 +179,10 @@ function App() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 px-4 bg-white animate-slideDown border-t border-gray-100">
             <nav className="flex flex-col space-y-3">
-              {['Buy', 'Rent', 'Sell', 'Insights'].map((item) => (
+              {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
                 <Link 
                   key={item}
-                  to={`/${item.toLowerCase()}`} 
+                  to={`/${item.toLowerCase().replace(' ', '-')}`} 
                   className="text-gray-600 py-2"
                 >
                   {item}
