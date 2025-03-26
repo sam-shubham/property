@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ScrollToTop';
+import { AuthProvider } from './contexts/AuthContext';
+import { AdminRoute } from './components/AdminRoute';
 
 // Import your components
 import App from './App';
@@ -21,6 +23,7 @@ import { FarmHouses } from './pages/projects/FarmHouses';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { PropertyApproval } from './pages/admin/PropertyApproval';
 import { AdminLogin } from './pages/admin/Login';
+import { Settings } from './pages/admin/Settings';
 
 import './index.css';
 
@@ -59,14 +62,26 @@ const router = createBrowserRouter([
   },
   // Admin section should be outside the RootLayout to avoid ScrollToTop issues with admin routes
   { path: '/admin/login', element: <AdminLogin /> },
-  { path: '/admin', element: <AdminDashboard /> },
-  { path: '/admin/properties', element: <PropertyApproval /> },
+  { 
+    path: '/admin', 
+    element: <AdminRoute><AdminDashboard /></AdminRoute> 
+  },
+  { 
+    path: '/admin/properties', 
+    element: <AdminRoute><PropertyApproval /></AdminRoute> 
+  },
+  { 
+    path: '/admin/settings', 
+    element: <AdminRoute><Settings /></AdminRoute> 
+  },
 ]);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </ErrorBoundary>
   </StrictMode>
 );

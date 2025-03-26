@@ -1,20 +1,66 @@
 import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Home, Users, Settings, LogOut, ChevronRight, 
-  CheckCircle, XCircle, Bell, Search, Filter, Eye
+  CheckCircle, XCircle, Bell
 } from 'lucide-react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { getPropertyStatistics } from '../../services/propertyService';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../config/firebase';
 
 export const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('pending');
+  const navigate = useNavigate();
   const [statistics, setStatistics] = useState({
-    pendingListings: 24,
-    approvedListings: 1342,
-    rejectedListings: 78,
-    totalUsers: 865,
-    totalAgents: 123
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    total: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [recentActivity] = useState([
+    {
+      action: 'Property Approved',
+      user: 'John Doe',
+      property: '123 Main St',
+      time: '2 hours ago'
+    },
+    {
+      action: 'Property Rejected',
+      user: 'Jane Smith',
+      property: '456 Oak Ave',
+      time: '3 hours ago'
+    }
+  ]);
+
+  // Load stats when component mounts
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setLoading(true);
+        const stats = await getPropertyStatistics();
+        setStatistics(stats);
+        setError('');
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadStats();
+  }, []);
   
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/admin/login');
+    } catch (error) {
+      console.error("Failed to log out", error);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -44,7 +90,10 @@ export const AdminDashboard = () => {
         </nav>
         
         <div className="mt-auto pt-8">
-          <button className="flex items-center px-3 py-2 rounded-lg text-indigo-200 hover:bg-indigo-700 w-full">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center px-3 py-2 rounded-lg text-indigo-200 hover:bg-indigo-700 w-full"
+          >
             <LogOut className="h-5 w-5 mr-3" />
             Logout
           </button>
@@ -79,7 +128,7 @@ export const AdminDashboard = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-gray-500 text-sm font-medium mb-2">Pending Approvals</h3>
               <div className="flex items-end">
-                <span className="text-3xl font-bold text-indigo-600">{statistics.pendingListings}</span>
+                <span className="text-3xl font-bold text-indigo-600">{statistics.pending}</span>
                 <span className="text-sm text-gray-500 ml-2 mb-1">properties</span>
               </div>
               <Link to="/admin/properties?filter=pending" className="text-indigo-600 text-sm mt-4 inline-flex items-center">
@@ -91,7 +140,7 @@ export const AdminDashboard = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-gray-500 text-sm font-medium mb-2">Approved Listings</h3>
               <div className="flex items-end">
-                <span className="text-3xl font-bold text-green-600">{statistics.approvedListings}</span>
+                <span className="text-3xl font-bold text-green-600">{statistics.approved}</span>
                 <span className="text-sm text-gray-500 ml-2 mb-1">properties</span>
               </div>
               <Link to="/admin/properties?filter=approved" className="text-indigo-600 text-sm mt-4 inline-flex items-center">
@@ -103,7 +152,7 @@ export const AdminDashboard = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-gray-500 text-sm font-medium mb-2">User Statistics</h3>
               <div className="flex items-end">
-                <span className="text-3xl font-bold text-blue-600">{statistics.totalUsers}</span>
+                <span className="text-3xl font-bold text-blue-600">{statistics.total}</span>
                 <span className="text-sm text-gray-500 ml-2 mb-1">users</span>
               </div>
               <Link to="/admin/users" className="text-indigo-600 text-sm mt-4 inline-flex items-center">
@@ -117,13 +166,7 @@ export const AdminDashboard = () => {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
             <div className="space-y-4">
-              {[
-                { action: 'Property Submitted', user: 'Rahul Sharma', property: 'Luxury Villa in Whitefield', time: '2 hours ago' },
-                { action: 'Property Approved', user: 'Admin', property: '3 BHK Apartment in Koramangala', time: '3 hours ago' },
-                { action: 'Property Rejected', user: 'Admin', property: 'Commercial Space in HSR Layout', time: '5 hours ago' },
-                { action: 'New User Registered', user: 'Neha Patel', property: '', time: '6 hours ago' },
-                { action: 'Property Edited', user: 'Vikram Malhotra', property: 'Studio Apartment in JP Nagar', time: '1 day ago' },
-              ].map((activity, index) => (
+              {recentActivity.map((activity, index) => (
                 <div key={index} className="flex items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0">
                   <div className={`p-2 rounded-full mr-4 ${
                     activity.action.includes('Approved') 

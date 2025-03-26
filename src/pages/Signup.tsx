@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Mail, Lock, Eye, EyeOff, Menu, ArrowRight, User, Check, Phone, X
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthHeader } from '../components/AuthHeader';
 import { Footer } from '../components/Footer';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../config/firebase';
 
 export const Signup = () => {
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -17,51 +21,97 @@ export const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [userType, setUserType] = useState('buyer');
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [userType, setUserType] = useState('buyer'); // buyer, seller, agent
-  
-  // Scroll handler
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 10);
     };
-    // Call it once to set initial state
-    handleScroll();
+    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Validation
-    if (!fullName || !email || !password || !confirmPassword) {
-      setErrorMessage('Please fill in all required fields');
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
-      return;
-    }
-    
-    if (!agreeTerms) {
-      setErrorMessage('You must agree to the Terms of Service');
-      return;
-    }
-    
-    // Here you would handle actual signup
-    console.log('Signup with:', {
-      fullName,
-      email,
-      phone,
-      password,
-      userType
-    });
-    
-    // Clear error
-    setErrorMessage('');
-  };
+  interface UserProfile {
+    fullName: string;
+    email: string;
+    phone: string;
+    userType: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface FirebaseError {
+    code: string;
+    message: string;
+  }
+
+    const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      
+      // Form validation
+      if (!fullName || !email || !password || !confirmPassword) {
+        setErrorMessage('Please fill in all required fields');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        setErrorMessage('Passwords do not match');
+        return;
+      }
+      
+      if (password.length < 8) {
+        setErrorMessage('Password must be at least 8 characters long');
+        return;
+      }
+      
+      if (!agreeToTerms) {
+        setErrorMessage('You must agree to the Terms of Service');
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        setErrorMessage('');
+        
+        // Create user in Firebase Authentication
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // Save user profile data to Firestore
+        const userData: UserProfile = {
+          fullName,
+          email,
+          phone,
+          userType,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        await setDoc(doc(db, 'users', user.uid), userData);
+        
+        // Redirect to login page or dashboard
+        navigate('/login');
+        
+      } catch (error) {
+        console.error('Error during signup:', error);
+        
+        const firebaseError = error as FirebaseError;
+        if (firebaseError.code === 'auth/email-already-in-use') {
+          setErrorMessage('This email is already registered. Please use a different email or login instead.');
+        } else if (firebaseError.code === 'auth/invalid-email') {
+          setErrorMessage('Please enter a valid email address.');
+        } else if (firebaseError.code === 'auth/weak-password') {
+          setErrorMessage('Password is too weak. Please use a stronger password.');
+        } else {
+          setErrorMessage('An error occurred during registration. Please try again later.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
@@ -227,8 +277,8 @@ export const Signup = () => {
                       <input
                         id="terms"
                         type="checkbox"
-                        checked={agreeTerms}
-                        onChange={() => setAgreeTerms(!agreeTerms)}
+                        checked={agreeToTerms}
+                        onChange={() => setAgreeToTerms(!agreeToTerms)}
                         className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                         required
                       />
@@ -248,12 +298,26 @@ export const Signup = () => {
                   </div>
                   
                   {/* Signup Button */}
-                  <button
-                    type="submit"
-                    className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center"
+                  <Button 
+                    type="submit" 
+                    variant="primary" 
+                    className="w-full py-3" 
+                    disabled={loading}
                   >
-                    Create Account
-                  </button>
+                    {loading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creating account...
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center">
+                        Create Account <ArrowRight className="ml-2 h-5 w-5" />
+                      </span>
+                    )}
+                  </Button>
                   
                   {/* Social Signups */}
                   <div className="relative my-6">

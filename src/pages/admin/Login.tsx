@@ -1,119 +1,131 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../config/firebase';
 
 export const AdminLogin = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('oculusquest2119@gmail.com'); // Pre-filled for testing
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  
-interface AdminAuth {
-    isAdmin: boolean;
-    token: string;
-}
+  const [loading, setLoading] = useState(false);
 
-interface LoginFormEvent extends React.FormEvent<HTMLFormElement> {
-    preventDefault: () => void;
-}
-
-const handleLogin = (e: LoginFormEvent): void => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
     if (!email || !password) {
-        setError('Please fill in all fields');
-        return;
+      setError('Please fill in all fields');
+      return;
     }
     
-    // This is a mock authentication - in a real app, you would call an API
-    if (email === 'admin@example.com' && password === 'admin123') {
-        // Store admin token/session
-        localStorage.setItem('adminAuth', JSON.stringify({ 
-            isAdmin: true, 
-            token: 'mock-jwt-token' 
-        } as AdminAuth));
-        
-        navigate('/admin');
-    } else {
-        setError('Invalid email or password');
+    try {
+      setLoading(true);
+      
+      // Sign in with Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Check if user is an admin
+      const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+      
+      if (!adminDoc.exists()) {
+        // Not an admin, sign out and show error
+        await auth.signOut();
+        setError('You are not authorized as admin');
+        setLoading(false);
+        return;
+      }
+      
+      // Admin login successful
+      navigate('/admin');
+    } catch (error: any) {
+      console.error("Login error:", error);
+      setError(error.code === 'auth/invalid-credential' ? 
+        'Invalid email or password' : 
+        error.message);
+    } finally {
+      setLoading(false);
     }
-};
-  
+  };
+
+  // Your existing JSX for the login form
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="bg-indigo-600 p-6 text-white">
-          <h1 className="text-xl font-bold">PropertyPrime</h1>
-          <p className="text-indigo-200 text-sm">Admin Login</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Admin Login
+          </h2>
         </div>
         
-        <div className="p-6">
-          {error && (
-            <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-6 text-sm">
-              {error}
-            </div>
-          )}
-          
-          <form onSubmit={handleLogin}>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    placeholder="admin@example.com"
-                  />
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+            {error}
+          </div>
+        )}
+        
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div className="mb-4">
+              <label htmlFor="email" className="sr-only">Email address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
                 </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="appearance-none rounded-lg relative block w-full pl-10 py-2 px-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Email address"
+                />
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    placeholder="Enter your password"
-                  />
+            </div>
+            
+            <div>
+              <label htmlFor="password" className="sr-only">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none rounded-lg relative block w-full pl-10 py-2 px-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Password"
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     onClick={() => setShowPassword(!showPassword)}
+                    className="text-gray-400 hover:text-gray-500"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
-              
-              <button
-                type="submit"
-                className="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center"
-              >
-                Log in to Admin Panel
-              </button>
             </div>
-          </form>
-          
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-500">
-              For demo: Email: admin@example.com, Password: admin123
-            </p>
           </div>
-        </div>
+          
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Mail, Lock, Eye, EyeOff, Menu, ArrowRight, User, Check, X
+  Mail, Lock, Eye, EyeOff, X
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthHeader } from '../components/AuthHeader';
 import { Footer } from '../components/Footer';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../config/firebase';
 
 export const Login = () => {
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -15,6 +19,7 @@ export const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   
   // Scroll handler
   useEffect(() => {
@@ -27,19 +32,61 @@ export const Login = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  interface UserData {
+    // Add specific user data fields based on your Firestore schema
+    [key: string]: any;
+  }
+
+  interface FirebaseError {
+    code: string;
+    message: string;
+  }
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Validation
+    
+    // Basic validation
     if (!email || !password) {
       setErrorMessage('Please fill in all fields');
       return;
     }
     
-    // Here you would handle actual login
-    console.log('Login with:', email, password, rememberMe);
-    
-    // Clear error
-    setErrorMessage('');
+    try {
+      setLoading(true);
+      setErrorMessage('');
+      
+      // Sign in with Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Optionally fetch user profile
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as UserData;
+        // You could store user data in a context or local storage here
+        console.log('User logged in:', userData);
+      }
+      
+      // Redirect to dashboard or home page
+      navigate('/');
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      const firebaseError = error as FirebaseError;
+      if (firebaseError.code === 'auth/invalid-credential' || 
+          firebaseError.code === 'auth/user-not-found' || 
+          firebaseError.code === 'auth/wrong-password') {
+        setErrorMessage('Invalid email or password');
+      } else if (firebaseError.code === 'auth/too-many-requests') {
+        setErrorMessage('Too many failed login attempts. Please try again later.');
+      } else {
+        setErrorMessage('An error occurred during login. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -127,12 +174,24 @@ export const Login = () => {
                   </div>
                   
                   {/* Login Button */}
-                  <button
-                    type="submit"
-                    className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center"
+                  <Button 
+                    type="submit" 
+                    variant="primary" 
+                    className="w-full py-3" 
+                    disabled={loading}
                   >
-                    Log in
-                  </button>
+                    {loading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Logging in...
+                      </span>
+                    ) : (
+                      'Log In'
+                    )}
+                  </Button>
                   
                   {/* Social Logins */}
                   <div className="relative my-6">
