@@ -367,9 +367,9 @@ export const TopBuilders = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             {/* Changed button styling to be more visible */}
-            <Button className="bg-indigo-50 text-indigo-600 hover:bg-white hover:shadow-md border border-white">
+            <Link to="/properties" className="px-6 py-3 bg-white text-indigo-600 rounded-lg font-medium hover:bg-gray-100 transition-colors">
               Browse Properties
-            </Button>
+            </Link>
             <Button className="bg-indigo-700 text-white hover:bg-indigo-800 border border-indigo-500">
               Schedule a Consultation
             </Button>
