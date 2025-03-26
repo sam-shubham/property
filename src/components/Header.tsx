@@ -50,44 +50,49 @@ export const Header = () => {
             PropertyPrime
           </Link>
           
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
-            {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-              <Link 
-                key={item}
-                to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
-              >
-                {item}
-              </Link>
-            ))}
+          {/* Desktop Navigation - Restructured */}
+          <div className="hidden md:flex items-center justify-between flex-1 ml-10">
+            {/* Navigation Links - Fixed width container */}
+            <nav className="flex items-center space-x-6">
+              {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
+                <Link 
+                  key={item}
+                  to={`/${item.toLowerCase().replace(' ', '-')}`} 
+                  className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
+                >
+                  {item}
+                </Link>
+              ))}
+            </nav>
             
-            {/* Add this conditional block */}
-            {currentUser ? (
-              <UserRoleIndicator />
-            ) : (
-              <div className="flex items-center ml-6 space-x-3">
-                <Link to="/login">
-                  <Button variant={scrolled ? "outline" : "ghost"} size="sm">
-                    Log In
-                  </Button>
-                </Link>
-                <Link to="/signup">
-                  <Button variant={scrolled ? "primary" : "ghost"} size="sm">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </nav>
+            {/* Auth Section - Always aligned right */}
+            <div className="flex items-center">
+              {currentUser ? (
+                <UserRoleIndicator />
+              ) : (
+                <div className="flex items-center space-x-3">
+                  <Link to="/login">
+                    <Button variant={scrolled ? "outline" : "ghost"} size="sm">
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link to="/signup">
+                    <Button variant={scrolled ? "primary" : "ghost"} size="sm">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
           
           {/* Mobile menu button */}
           <button 
             className={`md:hidden p-2 rounded-full ${
               mobileMenuOpen 
-                ? 'bg-gray-100 text-indigo-600' // More visible background for close button
+                ? 'bg-gray-100 text-indigo-600'
                 : scrolled ? 'text-gray-600' : 'text-white'
-            } z-50`} // Increased z-index to ensure it's clickable
+            } z-50`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           >
@@ -121,22 +126,25 @@ export const Header = () => {
                 </Link>
               ))}
               
-              <div className="pt-6 border-t border-gray-100 flex flex-col space-y-4">
-                <Link 
-                  to="/login" 
-                  className="text-lg font-medium text-gray-900 hover:text-indigo-600"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Log in
-                </Link>
-                <Link 
-                  to="/signup"
-                  className="bg-indigo-600 text-white text-center py-3 rounded-lg hover:bg-indigo-700 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign up
-                </Link>
-              </div>
+              {/* Conditional rendering for mobile */}
+              {!currentUser && (
+                <div className="pt-6 border-t border-gray-100 flex flex-col space-y-4">
+                  <Link 
+                    to="/login" 
+                    className="text-lg font-medium text-gray-900 hover:text-indigo-600"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Log in
+                  </Link>
+                  <Link 
+                    to="/signup"
+                    className="bg-indigo-600 text-white text-center py-3 rounded-lg hover:bg-indigo-700 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              )}
               
               {currentUser && (
                 <div className="py-3 border-t border-gray-200">
