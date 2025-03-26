@@ -71,17 +71,32 @@ export const Header = () => {
           </Link>
         </div>
         
+        {/* UPDATED: Improved mobile menu toggle button */}
         <button 
-          className={`md:hidden ${scrolled ? 'text-gray-600' : 'text-white'}`}
+          className={`md:hidden p-2 rounded-full ${
+            mobileMenuOpen 
+              ? 'bg-gray-100 text-indigo-600' // More visible background for close button
+              : scrolled ? 'text-gray-600' : 'text-white'
+          } z-50`} // Increased z-index to ensure it's clickable
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
       
-      {/* Mobile menu */}
+      {/* Mobile menu with improved close button */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 bg-white z-40 md:hidden overflow-y-auto pt-20">
+          {/* ADDED: Additional close button at the top right for better visibility */}
+          <button 
+            className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 text-indigo-600"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close navigation menu"
+          >
+            <X className="h-6 w-6" />
+          </button>
+          
           <div className="container mx-auto px-4 py-4">
             <nav className="flex flex-col space-y-6">
               {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
@@ -94,6 +109,7 @@ export const Header = () => {
                   {item}
                 </Link>
               ))}
+              
               <div className="pt-6 border-t border-gray-100 flex flex-col space-y-4">
                 <Link 
                   to="/login" 
