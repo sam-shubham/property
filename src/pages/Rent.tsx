@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Layout } from '../components/Layout';
-import { Filter, Search, ChevronDown, Home, Building2, ArrowRight, Sparkles, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { 
+  Filter, Search, ChevronDown, Home, Building2, ArrowRight, Sparkles, Menu 
+} from 'lucide-react';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
+import { searchProperties, filterProperties, sortProperties } from '../utils/searchUtils';
 
 const SAMPLE_PROPERTIES = Array(6).fill({
   id: '1',
@@ -27,6 +31,17 @@ export const Rent = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    propertyType: 'all',
+    price: 'Any Price',
+    bhk: 'Any BHK',
+    furnishing: 'Any Furnishing',
+    availability: 'Any Date'
+  });
+  const [sortOption, setSortOption] = useState('Newest First');
+  const [filteredProperties, setFilteredProperties] = useState(SAMPLE_PROPERTIES);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,77 +52,33 @@ export const Rent = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    let results = SAMPLE_PROPERTIES;
+    
+    if (activeCategory !== 'all') {
+      results = results.filter(property => property.category === activeCategory);
+    }
+    
+    results = searchProperties(results, searchQuery);
+    
+    results = filterProperties(results, filters);
+    
+    results = sortProperties(results, sortOption);
+    
+    setFilteredProperties(results);
+  }, [searchQuery, filters, sortOption, activeCategory]);
+
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      [filterName]: value
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      {/* Header - same as other pages */}
-      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
-      }`}>
-        <div className="container mx-auto flex items-center justify-between px-4">
-          <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>
-            PropertyPrime
-          </Link>
-          
-          <nav className="hidden md:flex space-x-8">
-            {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-              <Link 
-                key={item}
-                to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
-              >
-                {item}
-              </Link>
-            ))}
-          </nav>
-          
-          <div className="hidden md:flex items-center gap-3">
-            <Link
-              to="/login"
-              className={`text-sm ${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'}`}
-            >
-              Log in
-            </Link>
-            <Link
-              to="/signup"
-              className={`text-sm px-4 py-2 ${scrolled ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600'} rounded-full hover:bg-opacity-90 transition-colors`}
-            >
-              Sign up
-            </Link>
-          </div>
-          
-          <button 
-            className={`md:hidden ${scrolled ? 'text-gray-600' : 'text-white'}`}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        </div>
-        
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 px-4 bg-white animate-slideDown border-t border-gray-100">
-            <nav className="flex flex-col space-y-3">
-              {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-                <Link 
-                  key={item}
-                  to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                  className="text-gray-600 py-2"
-                >
-                  {item}
-                </Link>
-              ))}
-              <div className="flex gap-2 pt-3 border-t border-gray-100">
-                <Link to="/login" className="flex-1 text-center py-2">Login</Link>
-                <Link to="/signup" className="flex-1 bg-indigo-600 text-white rounded-md py-2 text-center">
-                  Sign Up
-                </Link>
-              </div>
-            </nav>
-          </div>
-        )}
-      </header>
-
-      {/* Hero section */}
+      <Header />
+      
       <section className="relative py-16 md:py-24">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 to-indigo-700/80"></div>
@@ -126,18 +97,19 @@ export const Rent = () => {
               Discover premium rental properties that suit your lifestyle and budget
             </p>
             
-            {/* Search box */}
             <div className="bg-white rounded-xl shadow-lg p-3 mb-8">
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Enter location or property name..."
+                    placeholder="Search by location, property name..."
                     className="w-full pl-10 pr-3 py-3 rounded-lg text-sm border-none focus:ring-0"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <button className="bg-indigo-600 text-white px-5 py-3 rounded-lg text-sm font-medium flex items-center">
+                <button className="bg-indigo-600 text-white px-5 py-3 rounded-lg text-sm font-medium flex items-center hover:bg-indigo-700 transition-colors">
                   Search
                 </button>
               </div>
@@ -145,57 +117,62 @@ export const Rent = () => {
               <div className="flex justify-between items-center pt-3">
                 <button 
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="text-sm text-gray-500 hover:text-indigo-600 flex items-center"
+                  className="text-sm text-gray-500 hover:text-indigo-600 flex items-center transition-colors"
                 >
                   <Filter className="h-3 w-3 mr-1" />
-                  Filters
+                  Advanced Filters
                   <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
                 </button>
-                
-                <div className="flex gap-2">
-                  {['Apartment', 'House', 'PG'].map(type => (
-                    <button
-                      key={type}
-                      className="text-xs px-3 py-1 rounded-full transition-colors bg-gray-100 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600"
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
               </div>
               
-              {/* Advanced filters */}
               {showAdvancedFilters && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 mt-3 border-t border-gray-100 animate-fadeIn">
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Budget</option>
-                    <option>Under ₹15k/mo</option>
-                    <option>₹15k-₹25k/mo</option>
-                    <option>₹25k-₹50k/mo</option>
-                    <option>₹50k+/mo</option>
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.propertyType}
+                    onChange={(e) => handleFilterChange('propertyType', e.target.value)}
+                  >
+                    <option value="all">Any Type</option>
+                    <option value="apartment">Apartment</option>
+                    <option value="house">House</option>
+                    <option value="villa">Villa</option>
+                    <option value="pg">PG/Co-living</option>
                   </select>
                   
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>BHK Type</option>
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.price}
+                    onChange={(e) => handleFilterChange('price', e.target.value)}
+                  >
+                    <option>Any Price</option>
+                    <option>Under ₹10K</option>
+                    <option>₹10K - ₹20K</option>
+                    <option>₹20K - ₹30K</option>
+                    <option>₹30K - ₹50K</option>
+                    <option>Above ₹50K</option>
+                  </select>
+                  
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.bhk}
+                    onChange={(e) => handleFilterChange('bhk', e.target.value)}
+                  >
+                    <option>Any BHK</option>
                     <option>1 BHK</option>
                     <option>2 BHK</option>
                     <option>3 BHK</option>
                     <option>4+ BHK</option>
                   </select>
                   
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Furnishing</option>
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.furnishing}
+                    onChange={(e) => handleFilterChange('furnishing', e.target.value)}
+                  >
+                    <option>Any Furnishing</option>
                     <option>Fully Furnished</option>
-                    <option>Semi-Furnished</option>
+                    <option>Semi Furnished</option>
                     <option>Unfurnished</option>
-                  </select>
-                  
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Available From</option>
-                    <option>Immediate</option>
-                    <option>Within 15 days</option>
-                    <option>Within 30 days</option>
-                    <option>After 30 days</option>
                   </select>
                 </div>
               )}
@@ -204,7 +181,6 @@ export const Rent = () => {
         </div>
       </section>
 
-      {/* Popular Categories */}
       <section className="py-8 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-3 justify-center">
@@ -219,12 +195,13 @@ export const Rent = () => {
               <button
                 key={category.id}
                 className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                  activeCategory === category.id 
-                    ? 'bg-indigo-100 text-indigo-600' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600'
+                  activeCategory === category.id
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
                 onClick={() => setActiveCategory(category.id)}
               >
+                {category.icon && <category.icon className="h-3 w-3 inline mr-1" />}
                 {category.label}
               </button>
             ))}
@@ -232,23 +209,55 @@ export const Rent = () => {
         </div>
       </section>
 
-      {/* Properties Grid */}
-      <section className="py-10">
+      <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-semibold">Available Rentals</h2>
+            <div>
+              <h2 className="text-2xl font-semibold">Properties for Rent</h2>
+              <p className="text-sm text-gray-500">
+                Showing {filteredProperties.length} properties
+                {activeCategory !== 'all' && ` in ${activeCategory}`}
+              </p>
+            </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500">Showing 1-6 of 156</span>
-              <select className="text-sm p-2 rounded-lg border border-gray-200 bg-white">
+              <select 
+                className="text-sm p-2 rounded-lg border border-gray-200 bg-white"
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+              >
                 <option>Newest First</option>
                 <option>Price: Low to High</option>
                 <option>Price: High to Low</option>
+                <option>Most Popular</option>
               </select>
             </div>
           </div>
 
+          {filteredProperties.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No rental properties found matching your criteria</p>
+              <button 
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilters({
+                    propertyType: 'all',
+                    price: 'Any Price',
+                    bhk: 'Any BHK',
+                    furnishing: 'Any Furnishing',
+                    availability: 'Any Date'
+                  });
+                  setActiveCategory('all');
+                  setSortOption('Newest First');
+                }}
+                className="text-indigo-600 font-medium hover:underline"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {SAMPLE_PROPERTIES.map((property, index) => (
+            {filteredProperties.map((property, index) => (
               <Link 
                 key={index} 
                 to={`/property/${property.id}`}
@@ -308,7 +317,6 @@ export const Rent = () => {
         </div>
       </section>
 
-      {/* Rental Guide */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
@@ -346,6 +354,7 @@ export const Rent = () => {
           </div>
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

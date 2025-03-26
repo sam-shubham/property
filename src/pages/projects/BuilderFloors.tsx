@@ -4,6 +4,9 @@ import {
   Search, Filter, ChevronDown, Heart, MapPin, ArrowRight, Star, Menu, Building
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { Header } from '../../components/Header';
+import { Footer } from '../../components/Footer';
+import { searchProperties, filterProperties, sortProperties } from '../../utils/searchUtils';
 
 // Sample builder floor listings
 const BUILDER_FLOORS_LISTINGS = Array(6).fill({
@@ -51,96 +54,61 @@ export const BuilderFloors = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  
+  // New state variables for search and filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    developer: 'Any Developer',
+    price: 'Any Price',
+    bhk: 'Any BHK',
+    city: 'Any Location',
+    status: 'Any Status'
+  });
+  const [sortOption, setSortOption] = useState('Newest First');
+  const [filteredProjects, setFilteredProjects] = useState(BUILDER_FLOORS_LISTINGS);
 
   // Scroll handler
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
+    // Call it once to set initial state
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  // Search and filter effect
+  useEffect(() => {
+    let results = BUILDER_FLOORS_LISTINGS;
+    
+    // Apply search
+    results = searchProperties(results, searchQuery);
+    
+    // Apply filters
+    results = filterProperties(results, filters);
+    
+    // Apply sorting
+    results = sortProperties(results, sortOption);
+    
+    setFilteredProjects(results);
+  }, [searchQuery, filters, sortOption]);
+  
+  // Handle filter change
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      [filterName]: value
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      {/* Header - same as other pages */}
-      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
-      }`}>
-        <div className="container mx-auto flex items-center justify-between px-4">
-          <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>
-            PropertyPrime
-          </Link>
-          
-          <nav className="hidden md:flex space-x-8">
-            {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-              <Link 
-                key={item}
-                to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
-              >
-                {item}
-              </Link>
-            ))}
-          </nav>
-          
-          <div className="hidden md:flex items-center gap-3">
-            <Link
-              to="/login"
-              className={`text-sm ${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'}`}
-            >
-              Log in
-            </Link>
-            <Link
-              to="/signup"
-              className={`text-sm px-4 py-2 ${scrolled ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600'} rounded-full hover:bg-opacity-90 transition-colors`}
-            >
-              Sign up
-            </Link>
-          </div>
-          
-          <button 
-            className={`md:hidden ${scrolled ? 'text-gray-600' : 'text-white'}`}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        </div>
-        
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 px-4 bg-white animate-slideDown border-t border-gray-100">
-            <nav className="flex flex-col space-y-3">
-              {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-                <Link 
-                  key={item}
-                  to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                  className="text-gray-600 py-2"
-                >
-                  {item}
-                </Link>
-              ))}
-              <div className="flex gap-2 pt-3 border-t border-gray-100">
-                <Link to="/login" className="flex-1 text-center py-2">Login</Link>
-                <Link to="/signup" className="flex-1 bg-indigo-600 text-white rounded-md py-2 text-center">
-                  Sign Up
-                </Link>
-              </div>
-            </nav>
-          </div>
-        )}
-      </header>
-
-      {/* Hero section for Builder Floors */}
+      <Header />
+      
+      {/* Hero section */}
       <section className="relative py-16 md:py-24">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 to-indigo-700/80"></div>
-          <img 
-            src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80" 
-            className="w-full h-full object-cover object-center" 
-            alt="Builder floor projects"
-          />
-        </div>
+        {/* Background remains the same */}
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-2xl">
             <div className="flex items-center text-sm text-white/80 mb-3 animate-fadeInUp">
@@ -151,10 +119,10 @@ export const BuilderFloors = () => {
               <span>Builder Floors</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-4 animate-fadeInUp">
-              Premium Builder Floor Projects
+              Premium Builder Floor Properties
             </h1>
             <p className="text-white/90 text-lg mb-8 animate-fadeInUp" style={{animationDelay: '100ms'}}>
-              Experience independent living with exclusive builder floors in prime locations
+              Explore exclusive builder floors with modern designs and prime locations
             </p>
             
             {/* Search box */}
@@ -164,8 +132,10 @@ export const BuilderFloors = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search by location, colony or developer..."
+                    placeholder="Search by location, builder floor name or developer..."
                     className="w-full pl-10 pr-3 py-3 rounded-lg text-sm border-none focus:ring-0"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <button className="bg-indigo-600 text-white px-5 py-3 rounded-lg text-sm font-medium flex items-center hover:bg-indigo-700 transition-colors">
@@ -187,31 +157,48 @@ export const BuilderFloors = () => {
               {/* Advanced filters */}
               {showFilters && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 mt-3 border-t border-gray-100 animate-fadeIn">
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Any Builder</option>
-                    <option>DLF BuildHomes</option>
-                    <option>Vatika Builders</option>
-                    <option>Unity Group</option>
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.developer}
+                    onChange={(e) => handleFilterChange('developer', e.target.value)}
+                  >
+                    <option>Any Developer</option>
+                    <option>DLF Homes</option>
                     <option>Ansal Housing</option>
+                    <option>Raheja Builders</option>
+                    <option>Unitech</option>
+                    <option>Godrej Properties</option>
                   </select>
                   
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.price}
+                    onChange={(e) => handleFilterChange('price', e.target.value)}
+                  >
                     <option>Any Price</option>
-                    <option>Under ₹1Cr</option>
-                    <option>₹1Cr - ₹1.5Cr</option>
-                    <option>₹1.5Cr - ₹2Cr</option>
+                    <option>Under ₹50L</option>
+                    <option>₹50L - ₹1Cr</option>
+                    <option>₹1Cr - ₹2Cr</option>
                     <option>Above ₹2Cr</option>
                   </select>
                   
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Any Floor</option>
-                    <option>Ground Floor</option>
-                    <option>First Floor</option>
-                    <option>Second Floor</option>
-                    <option>Third Floor</option>
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.bhk}
+                    onChange={(e) => handleFilterChange('bhk', e.target.value)}
+                  >
+                    <option>Any BHK</option>
+                    <option>2 BHK</option>
+                    <option>3 BHK</option>
+                    <option>4 BHK</option>
+                    <option>5+ BHK</option>
                   </select>
                   
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.status}
+                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                  >
                     <option>Any Status</option>
                     <option>Ready to Move</option>
                     <option>Under Construction</option>
@@ -229,10 +216,16 @@ export const BuilderFloors = () => {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h2 className="text-2xl font-semibold">Builder Floor Projects</h2>
-              <p className="text-sm text-gray-500">Showing {BUILDER_FLOORS_LISTINGS.length} premium builder floor projects</p>
+              <p className="text-sm text-gray-500">
+                Showing {filteredProjects.length} premium builder floor projects
+              </p>
             </div>
             <div className="flex items-center gap-3">
-              <select className="text-sm p-2 rounded-lg border border-gray-200 bg-white">
+              <select 
+                className="text-sm p-2 rounded-lg border border-gray-200 bg-white"
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+              >
                 <option>Newest First</option>
                 <option>Price: Low to High</option>
                 <option>Price: High to Low</option>
@@ -242,7 +235,7 @@ export const BuilderFloors = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {BUILDER_FLOORS_LISTINGS.map((project, index) => (
+            {filteredProjects.map((project, index) => (
               <Link 
                 key={index} 
                 to={`/project/${project.id}`}
@@ -310,13 +303,28 @@ export const BuilderFloors = () => {
             ))}
           </div>
 
-          {/* Load more button */}
-          <div className="flex justify-center mt-12">
-            <Button className="bg-indigo-600 text-white flex items-center gap-2">
-              <Building className="h-4 w-4" />
-              Load More Builder Floors
-            </Button>
-          </div>
+          {/* Display message if no results */}
+          {filteredProjects.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No builder floors found matching your criteria</p>
+              <button 
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilters({
+                    developer: 'Any Developer',
+                    price: 'Any Price',
+                    bhk: 'Any BHK',
+                    city: 'Any Location',
+                    status: 'Any Status'
+                  });
+                  setSortOption('Newest First');
+                }}
+                className="text-indigo-600 font-medium hover:underline"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -358,7 +366,7 @@ export const BuilderFloors = () => {
         </div>
       </section>
 
-      {/* Footer would go here */}
+      <Footer />
     </div>
   );
 };

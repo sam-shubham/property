@@ -4,6 +4,9 @@ import {
   Search, Filter, ChevronDown, Heart, MapPin, ArrowRight, Star, Menu, Building2, Building, Home
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
+import { searchProperties, filterProperties, sortProperties } from '../utils/searchUtils';
 
 // Sample listings data
 const SAMPLE_LISTINGS = Array(9).fill({
@@ -33,6 +36,18 @@ export const Listings = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    type: 'all',
+    price: 'Any Price',
+    bhk: 'Any BHK',
+    city: 'Any City',
+    area: 'Any Area'
+  });
+  const [sortOption, setSortOption] = useState('Newest First');
+  const [filteredListings, setFilteredListings] = useState(SAMPLE_LISTINGS);
+  const [currentPage, setCurrentPage] = useState(1);
+  const listingsPerPage = 9;
 
   // Scroll handler
   useEffect(() => {
@@ -45,76 +60,51 @@ export const Listings = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Filter and search listings when any filter changes
+  useEffect(() => {
+    let results = SAMPLE_LISTINGS;
+    
+    // Apply type filter (Sale, Rent, All)
+    if (filterType !== 'all') {
+      results = results.filter(listing => listing.type === filterType);
+    }
+    
+    // Apply search query
+    results = searchProperties(results, searchQuery);
+    
+    // Apply dropdown filters
+    results = filterProperties(results, filters);
+    
+    // Apply category filter
+    if (activeCategory !== 'all') {
+      results = results.filter(listing => listing.category === activeCategory);
+    }
+    
+    // Apply sorting
+    results = sortProperties(results, sortOption);
+    
+    setFilteredListings(results);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [searchQuery, filters, filterType, activeCategory, sortOption]);
+
+  // Handle filter change
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      [filterName]: value
+    }));
+  };
+
+  // Calculate the current page's listings
+  const indexOfLastListing = currentPage * listingsPerPage;
+  const indexOfFirstListing = indexOfLastListing - listingsPerPage;
+  const currentListings = filteredListings.slice(indexOfFirstListing, indexOfLastListing);
+  const totalPages = Math.ceil(filteredListings.length / listingsPerPage);
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      {/* Header - same as other pages */}
-      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
-      }`}>
-        <div className="container mx-auto flex items-center justify-between px-4">
-          <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>
-            PropertyPrime
-          </Link>
-          
-          <nav className="hidden md:flex space-x-8">
-            {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-              <Link 
-                key={item}
-                to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
-              >
-                {item}
-              </Link>
-            ))}
-          </nav>
-          
-          <div className="hidden md:flex items-center gap-3">
-            <Link
-              to="/login"
-              className={`text-sm ${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'}`}
-            >
-              Log in
-            </Link>
-            <Link
-              to="/signup"
-              className={`text-sm px-4 py-2 ${scrolled ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600'} rounded-full hover:bg-opacity-90 transition-colors`}
-            >
-              Sign up
-            </Link>
-          </div>
-          
-          <button 
-            className={`md:hidden ${scrolled ? 'text-gray-600' : 'text-white'}`}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        </div>
-        
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 px-4 bg-white animate-slideDown border-t border-gray-100">
-            <nav className="flex flex-col space-y-3">
-              {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-                <Link 
-                  key={item}
-                  to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                  className="text-gray-600 py-2"
-                >
-                  {item}
-                </Link>
-              ))}
-              <div className="flex gap-2 pt-3 border-t border-gray-100">
-                <Link to="/login" className="flex-1 text-center py-2">Login</Link>
-                <Link to="/signup" className="flex-1 bg-indigo-600 text-white rounded-md py-2 text-center">
-                  Sign Up
-                </Link>
-              </div>
-            </nav>
-          </div>
-        )}
-      </header>
-
+      <Header />
+      
       {/* Hero section */}
       <section className="relative py-16 md:py-24">
         <div className="absolute inset-0 z-0">
@@ -147,6 +137,8 @@ export const Listings = () => {
                       type="text"
                       placeholder="Search by location, property name, ID..."
                       className="w-full pl-10 pr-3 py-3 rounded-lg text-sm border-none focus:ring-0"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
                   <button className="bg-indigo-600 text-white px-5 py-3 rounded-lg text-sm font-medium flex items-center hover:bg-indigo-700 transition-colors">
@@ -184,7 +176,11 @@ export const Listings = () => {
                 {/* Advanced filters */}
                 {showFilters && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 mt-3 border-t border-gray-100 animate-fadeIn">
-                    <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                    <select 
+                      className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                      value={filters.type}
+                      onChange={(e) => handleFilterChange('type', e.target.value)}
+                    >
                       <option>Any Type</option>
                       <option>Apartment</option>
                       <option>House</option>
@@ -193,7 +189,11 @@ export const Listings = () => {
                       <option>Plot</option>
                     </select>
                     
-                    <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                    <select 
+                      className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                      value={filters.price}
+                      onChange={(e) => handleFilterChange('price', e.target.value)}
+                    >
                       <option>Any Price</option>
                       <option>Under ₹50L</option>
                       <option>₹50L - ₹1Cr</option>
@@ -201,7 +201,11 @@ export const Listings = () => {
                       <option>Above ₹2Cr</option>
                     </select>
                     
-                    <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                    <select 
+                      className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                      value={filters.bhk}
+                      onChange={(e) => handleFilterChange('bhk', e.target.value)}
+                    >
                       <option>Any BHK</option>
                       <option>1 BHK</option>
                       <option>2 BHK</option>
@@ -209,7 +213,11 @@ export const Listings = () => {
                       <option>4+ BHK</option>
                     </select>
                     
-                    <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                    <select 
+                      className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                      value={filters.city}
+                      onChange={(e) => handleFilterChange('city', e.target.value)}
+                    >
                       <option>Any City</option>
                       <option>Bangalore</option>
                       <option>Mumbai</option>
@@ -327,10 +335,16 @@ export const Listings = () => {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h2 className="text-2xl font-semibold">All Listings</h2>
-              <p className="text-sm text-gray-500">Showing 1-9 of 234 properties</p>
+              <p className="text-sm text-gray-500">
+                Showing {indexOfFirstListing + 1}-{Math.min(indexOfLastListing, filteredListings.length)} of {filteredListings.length} properties
+              </p>
             </div>
             <div className="flex items-center gap-3">
-              <select className="text-sm p-2 rounded-lg border border-gray-200 bg-white">
+              <select 
+                className="text-sm p-2 rounded-lg border border-gray-200 bg-white"
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+              >
                 <option>Newest First</option>
                 <option>Price: Low to High</option>
                 <option>Price: High to Low</option>
@@ -340,7 +354,7 @@ export const Listings = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {SAMPLE_LISTINGS.map((listing, index) => (
+            {currentListings.map((listing, index) => (
               <Link 
                 key={index} 
                 to={`/property/${listing.id}`}
@@ -389,18 +403,34 @@ export const Listings = () => {
           {/* Pagination */}
           <div className="flex justify-center mt-12">
             <div className="flex border border-gray-200 rounded-lg overflow-hidden bg-white">
-              <button className="p-2 px-4 border-r border-gray-200 text-gray-500 hover:bg-gray-50">
+              <button 
+                className="p-2 px-4 border-r border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
                 Prev
               </button>
-              {[1, 2, 3, 4, 5].map(page => (
-                <button 
-                  key={page} 
-                  className={`p-2 px-4 border-r border-gray-200 ${page === 1 ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-50 text-gray-600'}`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button className="p-2 px-4 text-gray-500 hover:bg-gray-50">
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                // For simplicity, show first 5 pages
+                // In a real app, you'd want to show pages around current page
+                const pageNum = i + 1;
+                return (
+                  <button 
+                    key={pageNum} 
+                    className={`p-2 px-4 border-r border-gray-200 ${pageNum === currentPage ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-50 text-gray-600'}`}
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              <button 
+                className="p-2 px-4 text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
                 Next
               </button>
             </div>
@@ -408,7 +438,7 @@ export const Listings = () => {
         </div>
       </section>
 
-      {/* Footer from App.tsx would go here */}
+      <Footer />
     </div>
   );
 };

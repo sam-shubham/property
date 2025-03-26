@@ -4,6 +4,8 @@ import {
   Mail, Lock, Eye, EyeOff, Menu, ArrowRight, User, Check, X
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
 
 export const Login = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -42,76 +44,7 @@ export const Login = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      {/* Header - same as other pages */}
-      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
-      }`}>
-        <div className="container mx-auto flex items-center justify-between px-4">
-          <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-indigo-600'}`}>
-            PropertyPrime
-          </Link>
-          
-          <nav className="hidden md:flex space-x-8">
-            {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-              <Link 
-                key={item}
-                to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-gray-700 hover:text-indigo-600'} text-sm font-medium transition-colors`}
-              >
-                {item}
-              </Link>
-            ))}
-          </nav>
-          
-          <div className="hidden md:flex items-center gap-3">
-            <Link
-              to="/login"
-              className="text-sm px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
-            >
-              Log in
-            </Link>
-            <Link
-              to="/signup"
-              className="text-sm px-4 py-2 border border-gray-300 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              Sign up
-            </Link>
-          </div>
-          
-          <button 
-            className="md:hidden text-gray-600"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        </div>
-        
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 px-4 bg-white animate-slideDown border-t border-gray-100">
-            <nav className="flex flex-col space-y-3">
-              {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-                <Link 
-                  key={item}
-                  to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                  className="text-gray-600 py-2"
-                >
-                  {item}
-                </Link>
-              ))}
-              <div className="flex gap-2 pt-3 border-t border-gray-100">
-                <Link to="/login" className="flex-1 bg-indigo-600 text-white rounded-md py-2 text-center">
-                  Login
-                </Link>
-                <Link to="/signup" className="flex-1 border border-gray-300 rounded-md py-2 text-center">
-                  Sign Up
-                </Link>
-              </div>
-            </nav>
-          </div>
-        )}
-      </header>
-
+      <Header />
       {/* Login Form */}
       <div className="pt-32 pb-20">
         <div className="container mx-auto px-4">
@@ -249,6 +182,7 @@ export const Login = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

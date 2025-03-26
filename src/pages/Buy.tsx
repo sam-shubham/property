@@ -1,10 +1,11 @@
-import { Layout } from '../components/Layout';
-import { SearchBar } from '../components/SearchBar';
-import { PropertyCard } from '../components/PropertyCard';
-import { Filter, Search, ChevronDown, Home, Building2, ArrowRight, Sparkles, Menu } from 'lucide-react';
-import { Button } from '../components/ui/Button';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  Search, Filter, ChevronDown, Heart, MapPin, Sparkles, Menu, Building, Home
+} from 'lucide-react';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
+import { searchProperties, filterProperties, sortProperties } from '../utils/searchUtils';
 
 const SAMPLE_PROPERTIES = Array(6).fill({
   id: '1',
@@ -26,10 +27,19 @@ const SAMPLE_PROPERTIES = Array(6).fill({
 });
 
 export const Buy = () => {
-  const [sortOption, setSortOption] = useState('newest');
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    propertyType: 'Any Type',
+    price: 'Any Price',
+    bhk: 'Any BHK',
+    location: 'Any Location',
+    possession: 'Any Possession'
+  });
+  const [sortOption, setSortOption] = useState('Newest First');
+  const [filteredProperties, setFilteredProperties] = useState(SAMPLE_PROPERTIES);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,77 +50,25 @@ export const Buy = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    let results = SAMPLE_PROPERTIES;
+    results = searchProperties(results, searchQuery);
+    results = filterProperties(results, filters);
+    results = sortProperties(results, sortOption);
+    setFilteredProperties(results);
+  }, [searchQuery, filters, sortOption]);
+
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      [filterName]: value
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      {/* Header - same as other pages */}
-      <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
-      }`}>
-        <div className="container mx-auto flex items-center justify-between px-4">
-          <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>
-            PropertyPrime
-          </Link>
-          
-          <nav className="hidden md:flex space-x-8">
-            {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-              <Link 
-                key={item}
-                to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
-              >
-                {item}
-              </Link>
-            ))}
-          </nav>
-          
-          <div className="hidden md:flex items-center gap-3">
-            <Link
-              to="/login"
-              className={`text-sm ${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'}`}
-            >
-              Log in
-            </Link>
-            <Link
-              to="/signup"
-              className={`text-sm px-4 py-2 ${scrolled ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600'} rounded-full hover:bg-opacity-90 transition-colors`}
-            >
-              Sign up
-            </Link>
-          </div>
-          
-          <button 
-            className={`md:hidden ${scrolled ? 'text-gray-600' : 'text-white'}`}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        </div>
-        
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 px-4 bg-white animate-slideDown border-t border-gray-100">
-            <nav className="flex flex-col space-y-3">
-              {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-                <Link 
-                  key={item}
-                  to={`/${item.toLowerCase().replace(' ', '-')}`} 
-                  className="text-gray-600 py-2"
-                >
-                  {item}
-                </Link>
-              ))}
-              <div className="flex gap-2 pt-3 border-t border-gray-100">
-                <Link to="/login" className="flex-1 text-center py-2">Login</Link>
-                <Link to="/signup" className="flex-1 bg-indigo-600 text-white rounded-md py-2 text-center">
-                  Sign Up
-                </Link>
-              </div>
-            </nav>
-          </div>
-        )}
-      </header>
-
-      {/* Hero section */}
+      <Header />
+      
       <section className="relative py-16 md:py-24">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 to-indigo-700/80"></div>
@@ -129,7 +87,6 @@ export const Buy = () => {
               Explore our curated selection of premium properties for sale across India
             </p>
             
-            {/* Search box */}
             <div className="bg-white rounded-xl shadow-lg p-3 mb-8">
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
@@ -138,9 +95,11 @@ export const Buy = () => {
                     type="text"
                     placeholder="Search by location, property name..."
                     className="w-full pl-10 pr-3 py-3 rounded-lg text-sm border-none focus:ring-0"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <button className="bg-indigo-600 text-white px-5 py-3 rounded-lg text-sm font-medium flex items-center">
+                <button className="bg-indigo-600 text-white px-5 py-3 rounded-lg text-sm font-medium flex items-center hover:bg-indigo-700 transition-colors">
                   Search
                 </button>
               </div>
@@ -148,29 +107,34 @@ export const Buy = () => {
               <div className="flex justify-between items-center pt-3">
                 <button 
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="text-sm text-gray-500 hover:text-indigo-600 flex items-center"
+                  className="text-sm text-gray-500 hover:text-indigo-600 flex items-center transition-colors"
                 >
                   <Filter className="h-3 w-3 mr-1" />
                   Advanced Filters
                   <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
                 </button>
-                
-                <div className="flex gap-2">
-                  {['Apartment', 'House', 'Villa'].map(type => (
-                    <button
-                      key={type}
-                      className="text-xs px-3 py-1 rounded-full transition-colors bg-gray-100 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600"
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
               </div>
               
-              {/* Advanced filters */}
               {showAdvancedFilters && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 mt-3 border-t border-gray-100 animate-fadeIn">
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.propertyType}
+                    onChange={(e) => handleFilterChange('propertyType', e.target.value)}
+                  >
+                    <option>Any Type</option>
+                    <option>Apartment</option>
+                    <option>Villa</option>
+                    <option>Builder Floor</option>
+                    <option>Plot</option>
+                    <option>Farm House</option>
+                  </select>
+                  
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.price}
+                    onChange={(e) => handleFilterChange('price', e.target.value)}
+                  >
                     <option>Any Price</option>
                     <option>Under ₹50L</option>
                     <option>₹50L - ₹1Cr</option>
@@ -178,7 +142,11 @@ export const Buy = () => {
                     <option>Above ₹2Cr</option>
                   </select>
                   
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.bhk}
+                    onChange={(e) => handleFilterChange('bhk', e.target.value)}
+                  >
                     <option>Any BHK</option>
                     <option>1 BHK</option>
                     <option>2 BHK</option>
@@ -186,19 +154,16 @@ export const Buy = () => {
                     <option>4+ BHK</option>
                   </select>
                   
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Any Area</option>
-                    <option>Under 1000 sq.ft</option>
-                    <option>1000-2000 sq.ft</option>
-                    <option>Above 2000 sq.ft</option>
-                  </select>
-                  
-                  <select className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50">
-                    <option>Any Locality</option>
-                    <option>Indiranagar</option>
-                    <option>Koramangala</option>
-                    <option>HSR Layout</option>
-                    <option>Whitefield</option>
+                  <select 
+                    className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
+                    value={filters.possession}
+                    onChange={(e) => handleFilterChange('possession', e.target.value)}
+                  >
+                    <option>Any Possession</option>
+                    <option>Ready to Move</option>
+                    <option>Within 3 Months</option>
+                    <option>Within 6 Months</option>
+                    <option>Under Construction</option>
                   </select>
                 </div>
               )}
@@ -207,30 +172,50 @@ export const Buy = () => {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600">
-              234 properties found
-            </span>
-            <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">Verified</span>
-          </div>
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex justify-between items-center mb-8">
           <div>
+            <h2 className="text-2xl font-semibold">Properties for Sale</h2>
+            <p className="text-sm text-gray-500">Showing {filteredProperties.length} properties</p>
+          </div>
+          <div className="flex items-center gap-3">
             <select 
               className="text-sm p-2 rounded-lg border border-gray-200 bg-white"
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
             >
-              <option value="newest">Newest First</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="popular">Most Popular</option>
+              <option>Newest First</option>
+              <option>Price: Low to High</option>
+              <option>Price: High to Low</option>
+              <option>Most Popular</option>
             </select>
           </div>
         </div>
 
+        {filteredProperties.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 mb-4">No properties found matching your criteria</p>
+            <button 
+              onClick={() => {
+                setSearchQuery('');
+                setFilters({
+                  propertyType: 'Any Type',
+                  price: 'Any Price',
+                  bhk: 'Any BHK',
+                  location: 'Any Location',
+                  possession: 'Any Possession'
+                });
+                setSortOption('Newest First');
+              }}
+              className="text-indigo-600 font-medium hover:underline"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {SAMPLE_PROPERTIES.map((property, index) => (
+          {filteredProperties.map((property, index) => (
             <Link 
               key={index} 
               to={`/property/${property.id}`}
@@ -288,6 +273,8 @@ export const Buy = () => {
           </button>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
