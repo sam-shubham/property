@@ -1,53 +1,41 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Search, Filter, ChevronDown, Heart, MapPin, ArrowRight, Star, Menu, Building
+  Search, Filter, ChevronDown, Heart, MapPin, ArrowRight, Menu, Building
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
-import { searchProperties, filterProperties, sortProperties } from '../../utils/searchUtils';
 
-// Sample builder floor listings
-const BUILDER_FLOORS_LISTINGS = Array(6).fill({
-  id: '1',
-  title: 'Premium Builder Floor in Residential Colony',
-  description: 'Spacious builder floor with excellent ventilation',
-  price: 12500000,
-  location: 'Defence Colony, Delhi',
+// Sample builder floors listings
+const BUILDER_FLOORS_LISTINGS = Array(6).fill({}).map((_, index) => ({
+  id: `bf${index + 1}`,
+  title: [
+    'Premium Builder Floor with Garden',
+    'Luxury Builder Floor with Terrace',
+    'Modern 3BHK Builder Floor',
+    'Independent Builder Floor with Parking',
+    'Contemporary Builder Floor in Gated Colony',
+    'Spacious Builder Floor with Premium Finishes'
+  ][index % 6],
+  description: 'Luxurious independent floor with modern amenities',
+  price: 15500000 + (index * 2500000),
+  location: ['Defence Colony', 'Greater Kailash', 'Vasant Vihar', 'Safdarjung Enclave', 'Hauz Khas', 'Panchsheel Park'][index % 6] + ', Delhi',
   type: 'sale',
   category: 'builder-floor',
-  bedrooms: 3,
+  bedrooms: 3 + (index % 2),
   bathrooms: 3,
-  area: 2200,
-  images: ['https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'],
-  features: ['Spacious Rooms', 'Private Entrance', 'Reserved Parking', 'Power Backup'],
+  area: 1800 + (index * 200),
+  images: ['https://images.unsplash.com/photo-1600585154526-990dced4db0d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'],
+  features: ['Modular Kitchen', 'Reserved Parking', 'Power Backup', 'Balcony', 'Security'],
   verified: true,
-  premium: true,
+  premium: index % 3 === 0,
   createdAt: '2024-03-15T10:00:00Z',
   updatedAt: '2024-03-15T10:00:00Z',
-  developer: 'City Homes Developers',
-  completionDate: 'Ready to Move',
-  totalUnits: 4,
-  availableUnits: 1,
-  floorNumber: 'First Floor'
-}).map((project, index) => ({
-  ...project,
-  id: `b${index + 1}`,
-  title: [
-    'Luxury Builder Floor with Terrace',
-    'Independent Floor in Gated Society',
-    'Modern Builder Floor with Garden',
-    'Premium Builder Floor with Basement',
-    'Spacious Builder Floor with Amenities',
-    'Corner Builder Floor with Parking'
-  ][index % 6],
-  price: 12000000 + (index * 2000000),
-  location: ['Defence Colony', 'Greater Kailash', 'Vasant Vihar', 'Safdarjung Enclave', 'Hauz Khas', 'Panchsheel Park'][index % 6] + ', Delhi',
-  developer: ['DLF BuildHomes', 'Vatika Builders', 'Unity Group', 'Ansal Housing', 'Assotech Limited', 'ATS Infrastructure'][index % 6],
-  floorNumber: ['Ground Floor', 'First Floor', 'Second Floor', 'Third Floor'][index % 4],
-  completionDate: index % 3 === 0 ? 'Ready to Move' : 'June 2024',
-  availableUnits: index % 2 === 0 ? 1 : 2
+  developer: ['Prestige Group', 'DLF Limited', 'Raheja Developers', 'Vatika Group', 'Unity Group', 'Ashiana Housing'][index % 6],
+  floorNumber: ['Ground', '1st', '2nd', '3rd', '4th'][index % 5] + ' Floor',
+  completionDate: index < 4 ? 'Ready to Move' : 'June 2024',
+  totalFloors: 4
 }));
 
 export const BuilderFloors = () => {
@@ -55,14 +43,14 @@ export const BuilderFloors = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   
-  // New state variables for search and filters
+  // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     developer: 'Any Developer',
     price: 'Any Price',
-    bhk: 'Any BHK',
-    city: 'Any Location',
-    status: 'Any Status'
+    bedrooms: 'Any BHK',
+    location: 'Any Location',
+    floorNumber: 'Any Floor'
   });
   const [sortOption, setSortOption] = useState('Newest First');
   const [filteredProjects, setFilteredProjects] = useState(BUILDER_FLOORS_LISTINGS);
@@ -78,24 +66,72 @@ export const BuilderFloors = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-  // Search and filter effect
+  // Search and filter effect - Fixed filtering logic
   useEffect(() => {
     let results = BUILDER_FLOORS_LISTINGS;
     
-    // Apply search
-    results = searchProperties(results, searchQuery);
+    // Apply search if there's a query
+    if (searchQuery) {
+      results = results.filter(project => 
+        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.developer.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
     
     // Apply filters
-    results = filterProperties(results, filters);
+    if (filters.developer !== 'Any Developer') {
+      results = results.filter(project => project.developer === filters.developer);
+    }
+    
+    if (filters.price !== 'Any Price') {
+      if (filters.price === 'Under ₹1.5Cr') {
+        results = results.filter(project => project.price < 15000000);
+      } else if (filters.price === '₹1.5Cr - ₹2Cr') {
+        results = results.filter(project => project.price >= 15000000 && project.price <= 20000000);
+      } else if (filters.price === '₹2Cr - ₹3Cr') {
+        results = results.filter(project => project.price > 20000000 && project.price <= 30000000);
+      } else if (filters.price === 'Above ₹3Cr') {
+        results = results.filter(project => project.price > 30000000);
+      }
+    }
+    
+    if (filters.bedrooms !== 'Any BHK') {
+      const bedroomCount = parseInt(filters.bedrooms.split(' ')[0]);
+      if (filters.bedrooms.includes('+')) {
+        results = results.filter(project => project.bedrooms >= bedroomCount);
+      } else {
+        results = results.filter(project => project.bedrooms === bedroomCount);
+      }
+    }
+    
+    if (filters.floorNumber !== 'Any Floor') {
+      results = results.filter(project => project.floorNumber.includes(filters.floorNumber.split(' ')[0]));
+    }
     
     // Apply sorting
-    results = sortProperties(results, sortOption);
+    if (sortOption === 'Price: Low to High') {
+      results = [...results].sort((a, b) => a.price - b.price);
+    } else if (sortOption === 'Price: High to Low') {
+      results = [...results].sort((a, b) => b.price - a.price);
+    } else if (sortOption === 'Area: Large to Small') {
+      results = [...results].sort((a, b) => b.area - a.area);
+    }
+    // Default is "Newest First" - no need to sort, as the array is already in that order
     
     setFilteredProjects(results);
   }, [searchQuery, filters, sortOption]);
   
   // Handle filter change
-  const handleFilterChange = (filterName: string, value: string) => {
+  interface Filters {
+    developer: string;
+    price: string;
+    bedrooms: string;
+    location: string;
+    floorNumber: string;
+  }
+
+  const handleFilterChange = (filterName: keyof Filters, value: string): void => {
     setFilters(prevFilters => ({
       ...prevFilters,
       [filterName]: value
@@ -104,12 +140,20 @@ export const BuilderFloors = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+      {/* Fixed Header - Ensuring it's visible with proper z-index */}
       <Header />
       
-      {/* Hero section */}
+      {/* Hero section for Builder Floors - Fixed z-index and positioning */}
       <section className="relative py-16 md:py-24">
-        {/* Background remains the same */}
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 to-indigo-700/80 z-10"></div>
+          <img 
+            src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80" 
+            className="w-full h-full object-cover object-center" 
+            alt="Luxury builder floors"
+          />
+        </div>
+        <div className="container mx-auto px-4 relative z-20">
           <div className="max-w-2xl">
             <div className="flex items-center text-sm text-white/80 mb-3 animate-fadeInUp">
               <Link to="/listings" className="hover:text-white">Listings</Link>
@@ -119,10 +163,10 @@ export const BuilderFloors = () => {
               <span>Builder Floors</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-4 animate-fadeInUp">
-              Premium Builder Floor Properties
+              Premium Builder Floor Projects
             </h1>
             <p className="text-white/90 text-lg mb-8 animate-fadeInUp" style={{animationDelay: '100ms'}}>
-              Explore exclusive builder floors with modern designs and prime locations
+              Discover exclusive builder floors offering privacy, space, and customization options
             </p>
             
             {/* Search box */}
@@ -163,11 +207,12 @@ export const BuilderFloors = () => {
                     onChange={(e) => handleFilterChange('developer', e.target.value)}
                   >
                     <option>Any Developer</option>
-                    <option>DLF Homes</option>
-                    <option>Ansal Housing</option>
-                    <option>Raheja Builders</option>
-                    <option>Unitech</option>
-                    <option>Godrej Properties</option>
+                    <option>Prestige Group</option>
+                    <option>DLF Limited</option>
+                    <option>Raheja Developers</option>
+                    <option>Vatika Group</option>
+                    <option>Unity Group</option>
+                    <option>Ashiana Housing</option>
                   </select>
                   
                   <select 
@@ -176,19 +221,18 @@ export const BuilderFloors = () => {
                     onChange={(e) => handleFilterChange('price', e.target.value)}
                   >
                     <option>Any Price</option>
-                    <option>Under ₹50L</option>
-                    <option>₹50L - ₹1Cr</option>
-                    <option>₹1Cr - ₹2Cr</option>
-                    <option>Above ₹2Cr</option>
+                    <option>Under ₹1.5Cr</option>
+                    <option>₹1.5Cr - ₹2Cr</option>
+                    <option>₹2Cr - ₹3Cr</option>
+                    <option>Above ₹3Cr</option>
                   </select>
                   
                   <select 
                     className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
-                    value={filters.bhk}
-                    onChange={(e) => handleFilterChange('bhk', e.target.value)}
+                    value={filters.bedrooms}
+                    onChange={(e) => handleFilterChange('bedrooms', e.target.value)}
                   >
                     <option>Any BHK</option>
-                    <option>2 BHK</option>
                     <option>3 BHK</option>
                     <option>4 BHK</option>
                     <option>5+ BHK</option>
@@ -196,12 +240,15 @@ export const BuilderFloors = () => {
                   
                   <select 
                     className="text-sm p-2 rounded-lg border border-gray-200 bg-gray-50"
-                    value={filters.status}
-                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                    value={filters.floorNumber}
+                    onChange={(e) => handleFilterChange('floorNumber', e.target.value)}
                   >
-                    <option>Any Status</option>
-                    <option>Ready to Move</option>
-                    <option>Under Construction</option>
+                    <option>Any Floor</option>
+                    <option>Ground Floor</option>
+                    <option>1st Floor</option>
+                    <option>2nd Floor</option>
+                    <option>3rd Floor</option>
+                    <option>4th Floor</option>
                   </select>
                 </div>
               )}
@@ -217,7 +264,7 @@ export const BuilderFloors = () => {
             <div>
               <h2 className="text-2xl font-semibold">Builder Floor Projects</h2>
               <p className="text-sm text-gray-500">
-                Showing {filteredProjects.length} premium builder floor projects
+                Showing {filteredProjects.length} premium builder floors
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -229,10 +276,33 @@ export const BuilderFloors = () => {
                 <option>Newest First</option>
                 <option>Price: Low to High</option>
                 <option>Price: High to Low</option>
-                <option>Ready to Move</option>
+                <option>Area: Large to Small</option>
               </select>
             </div>
           </div>
+
+          {/* Display message if no results */}
+          {filteredProjects.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No builder floors found matching your criteria</p>
+              <button 
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilters({
+                    developer: 'Any Developer',
+                    price: 'Any Price',
+                    bedrooms: 'Any BHK',
+                    location: 'Any Location',
+                    floorNumber: 'Any Floor'
+                  });
+                  setSortOption('Newest First');
+                }}
+                className="text-indigo-600 font-medium hover:underline"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProjects.map((project, index) => (
@@ -277,22 +347,22 @@ export const BuilderFloors = () => {
                       <span className="font-medium text-gray-800">{project.floorNumber}</span>
                     </div>
                     <div className="text-xs bg-gray-50 p-2 rounded-md">
-                      <span className="block text-gray-400">Available</span>
-                      <span className="font-medium text-gray-800">{project.availableUnits} Unit</span>
+                      <span className="block text-gray-400">Area</span>
+                      <span className="font-medium text-gray-800">{project.area} sq.ft</span>
                     </div>
                     <div className="text-xs bg-gray-50 p-2 rounded-md">
                       <span className="block text-gray-400">Status</span>
                       <span className="font-medium text-gray-800">{project.completionDate === 'Ready to Move' ? 'Ready to Move' : 'Under Construction'}</span>
                     </div>
                     <div className="text-xs bg-gray-50 p-2 rounded-md">
-                      <span className="block text-gray-400">Area</span>
-                      <span className="font-medium text-gray-800">{project.area} sq.ft</span>
+                      <span className="block text-gray-400">Bedrooms</span>
+                      <span className="font-medium text-gray-800">{project.bedrooms} BHK</span>
                     </div>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold text-indigo-600">
-                      ₹{(project.price / 10000000).toFixed(2)} Cr
+                      ₹{(project.price / 10000000).toFixed(1)} Cr
                     </span>
                     <div className="text-xs px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-full font-medium">
                       View Details
@@ -303,26 +373,13 @@ export const BuilderFloors = () => {
             ))}
           </div>
 
-          {/* Display message if no results */}
-          {filteredProjects.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">No builder floors found matching your criteria</p>
-              <button 
-                onClick={() => {
-                  setSearchQuery('');
-                  setFilters({
-                    developer: 'Any Developer',
-                    price: 'Any Price',
-                    bhk: 'Any BHK',
-                    city: 'Any Location',
-                    status: 'Any Status'
-                  });
-                  setSortOption('Newest First');
-                }}
-                className="text-indigo-600 font-medium hover:underline"
-              >
-                Clear all filters
-              </button>
+          {/* Load more button */}
+          {filteredProjects.length > 0 && (
+            <div className="flex justify-center mt-12">
+              <Button className="bg-indigo-600 text-white flex items-center gap-2">
+                <Building className="h-4 w-4" />
+                Load More Builder Floors
+              </Button>
             </div>
           )}
         </div>
@@ -334,26 +391,26 @@ export const BuilderFloors = () => {
           <div className="text-center mb-10">
             <h2 className="text-2xl font-semibold mb-3">Why Choose Builder Floors?</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Builder floors offer unique advantages over apartments for those seeking independence with convenience
+              Builder floors offer a perfect balance of apartment convenience and independent home autonomy
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: "Independence & Privacy",
-                description: "Enjoy the privacy of living with fewer neighbors and direct access to your floor.",
+                title: "Privacy & Exclusivity",
+                description: "Enjoy private living with typically 2-4 units per building, offering more exclusivity than apartments.",
                 icon: "🔑"
               },
               {
-                title: "Better Ventilation",
-                description: "Experience better light and air circulation with windows on multiple sides.",
-                icon: "💨"
+                title: "Low Maintenance",
+                description: "Lower maintenance costs compared to independent houses, with shared costs for common areas.",
+                icon: "💰"
               },
               {
-                title: "Lower Maintenance",
-                description: "Pay lower maintenance charges compared to full-service apartment complexes.",
-                icon: "💰"
+                title: "Design Flexibility",
+                description: "More customization options and typically larger spaces compared to apartment units.",
+                icon: "✨"
               }
             ].map((feature, index) => (
               <div key={index} className="bg-white p-6 rounded-xl shadow-sm">
@@ -365,7 +422,7 @@ export const BuilderFloors = () => {
           </div>
         </div>
       </section>
-
+      
       <Footer />
     </div>
   );
