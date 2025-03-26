@@ -24,6 +24,7 @@ import { AdminDashboard } from './pages/admin/Dashboard';
 import { PropertyApproval } from './pages/admin/PropertyApproval';
 import { AdminLogin } from './pages/admin/Login';
 import { Settings } from './pages/admin/Settings';
+import { AdminSetup } from './pages/AdminSetup';
 
 import './index.css';
 
@@ -74,6 +75,7 @@ const router = createBrowserRouter([
     path: '/admin/settings', 
     element: <AdminRoute><Settings /></AdminRoute> 
   },
+  { path: '/admin-setup', element: <AdminSetup /> }
 ]);
 
 createRoot(document.getElementById('root')!).render(

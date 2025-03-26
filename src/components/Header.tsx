@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { Button } from './ui/Button';
+import { UserRoleIndicator } from './UserRoleIndicator';
+import { useAuth } from '../contexts/AuthContext';
 
 export const Header = () => {
+  const { currentUser } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -36,53 +40,60 @@ export const Header = () => {
   }, [mobileMenuOpen]);
 
   return (
-    <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
+    <header className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 ${
+      scrolled ? 'bg-white shadow-md' : 'bg-transparent'
     }`}>
-      <div className="container mx-auto flex items-center justify-between px-4">
-        <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>
-          PropertyPrime
-        </Link>
-        
-        <nav className="hidden md:flex space-x-8">
-          {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
-            <Link 
-              key={item}
-              to={`/${item.toLowerCase().replace(' ', '-')}`} 
-              className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
-            >
-              {item}
-            </Link>
-          ))}
-        </nav>
-        
-        <div className="hidden md:flex items-center gap-3">
-          <Link
-            to="/login"
-            className={`text-sm ${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'}`}
-          >
-            Log in
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          {/* Logo */}
+          <Link to="/" className={`text-xl font-bold ${scrolled ? 'text-indigo-600' : 'text-white'}`}>
+            PropertyPrime
           </Link>
-          <Link
-            to="/signup"
-            className={`text-sm px-4 py-2 ${scrolled ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600'} rounded-full hover:bg-opacity-90 transition-colors`}
+          
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
+            {['Buy', 'Rent', 'Sell', 'Listings', 'Top Builders'].map((item) => (
+              <Link 
+                key={item}
+                to={`/${item.toLowerCase().replace(' ', '-')}`} 
+                className={`${scrolled ? 'text-gray-600 hover:text-indigo-600' : 'text-white hover:text-white/80'} text-sm font-medium transition-colors`}
+              >
+                {item}
+              </Link>
+            ))}
+            
+            {/* Add this conditional block */}
+            {currentUser ? (
+              <UserRoleIndicator />
+            ) : (
+              <div className="flex items-center ml-6 space-x-3">
+                <Link to="/login">
+                  <Button variant={scrolled ? "outline" : "ghost"} size="sm">
+                    Log In
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button variant={scrolled ? "primary" : "ghost"} size="sm">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </nav>
+          
+          {/* Mobile menu button */}
+          <button 
+            className={`md:hidden p-2 rounded-full ${
+              mobileMenuOpen 
+                ? 'bg-gray-100 text-indigo-600' // More visible background for close button
+                : scrolled ? 'text-gray-600' : 'text-white'
+            } z-50`} // Increased z-index to ensure it's clickable
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           >
-            Sign up
-          </Link>
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
-        
-        {/* UPDATED: Improved mobile menu toggle button */}
-        <button 
-          className={`md:hidden p-2 rounded-full ${
-            mobileMenuOpen 
-              ? 'bg-gray-100 text-indigo-600' // More visible background for close button
-              : scrolled ? 'text-gray-600' : 'text-white'
-          } z-50`} // Increased z-index to ensure it's clickable
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-        >
-          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
       </div>
       
       {/* Mobile menu with improved close button */}
@@ -126,6 +137,12 @@ export const Header = () => {
                   Sign up
                 </Link>
               </div>
+              
+              {currentUser && (
+                <div className="py-3 border-t border-gray-200">
+                  <UserRoleIndicator />
+                </div>
+              )}
             </nav>
           </div>
         </div>

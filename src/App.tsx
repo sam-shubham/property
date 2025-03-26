@@ -12,6 +12,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { searchProperties, filterProperties, sortProperties } from './utils/searchUtils';
 
+
 // Expanded sample property data
 const SAMPLE_PROPERTIES = Array(6).fill({
   id: '1',

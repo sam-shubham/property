@@ -7,7 +7,7 @@ import { auth, db } from '../../config/firebase';
 
 export const AdminLogin = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('oculusquest2119@gmail.com'); // Pre-filled for testing
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -24,24 +24,39 @@ export const AdminLogin = () => {
     
     try {
       setLoading(true);
+      setError('');
       
       // Sign in with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Check if user is an admin
-      const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+      console.log("Authenticated user:", user.uid);
       
-      if (!adminDoc.exists()) {
-        // Not an admin, sign out and show error
+      // Check if user is an admin - add debugging
+      try {
+        console.log("Checking admin status for:", user.uid);
+        const adminDocRef = doc(db, 'admins', user.uid);
+        console.log("Admin doc path:", adminDocRef.path);
+        
+        const adminDoc = await getDoc(adminDocRef);
+        console.log("Admin doc exists:", adminDoc.exists());
+        
+        if (!adminDoc.exists()) {
+          // Not an admin, sign out and show error
+          await auth.signOut();
+          setError('You are not authorized as admin. UID: ' + user.uid);
+          setLoading(false);
+          return;
+        }
+        
+        // Admin login successful - Store admin status in localStorage for easier access
+        localStorage.setItem('isAdmin', 'true');
+        navigate('/admin');
+      } catch (adminCheckError) {
+        console.error("Error checking admin status:", adminCheckError);
+        setError('Error verifying admin privileges. Please check Firebase security rules.');
         await auth.signOut();
-        setError('You are not authorized as admin');
-        setLoading(false);
-        return;
       }
-      
-      // Admin login successful
-      navigate('/admin');
     } catch (error: any) {
       console.error("Login error:", error);
       setError(error.code === 'auth/invalid-credential' ? 
@@ -52,7 +67,6 @@ export const AdminLogin = () => {
     }
   };
 
-  // Your existing JSX for the login form
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">

@@ -59,17 +59,37 @@ export const Login = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Optionally fetch user profile
+      // Check if user is an admin
+      const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+      if (adminDoc.exists()) {
+        // This is an admin user, redirect to admin dashboard
+        navigate('/admin');
+        return;
+      }
+      
+      // For regular users, check their role
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       
       if (userDoc.exists()) {
-        const userData = userDoc.data() as UserData;
-        // You could store user data in a context or local storage here
-        console.log('User logged in:', userData);
+        const userData = userDoc.data();
+        
+        // Store user data in localStorage for easy access
+        localStorage.setItem('userRole', userData.userType || 'buyer');
+        localStorage.setItem('userName', userData.fullName || '');
+        
+        // Redirect based on user type if needed
+        if (userData.userType === 'agent') {
+          navigate('/agent/dashboard');
+        } else if (userData.userType === 'seller') {
+          navigate('/seller/dashboard');
+        } else {
+          // Default to home page for buyers
+          navigate('/');
+        }
+      } else {
+        // User exists in Auth but not in Firestore
+        navigate('/');
       }
-      
-      // Redirect to dashboard or home page
-      navigate('/');
       
     } catch (error) {
       console.error('Login error:', error);
