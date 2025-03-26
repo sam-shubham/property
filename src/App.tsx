@@ -246,7 +246,7 @@ function App() {
       <Header />
       
       {/* Hero section with minimal elements and full-width image */}
-      <section className="relative min-h-screen flex items-center pt-16">
+      <section className="relative min-h-screen flex items-center pt-16 w-full overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/90 to-indigo-700/80"></div>
           <img 
@@ -258,10 +258,10 @@ function App() {
         
         <div className="container mx-auto px-4 relative z-10 pt-16 md:pt-0">
           <div className="max-w-xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight mb-4">
               Find Your Perfect Place
             </h1>
-            <p className="text-white/90 text-lg mb-8">
+            <p className="text-white/90 text-base md:text-lg mb-8">
               Discover exceptional properties that match your lifestyle
             </p>
             
