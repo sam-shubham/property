@@ -4,7 +4,7 @@ import {
   Mail, Lock, Eye, EyeOff, Menu, ArrowRight, User, Check, Phone, X
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { Header } from '../components/Header';
+import { AuthHeader } from '../components/AuthHeader';
 import { Footer } from '../components/Footer';
 
 export const Signup = () => {
@@ -65,7 +65,7 @@ export const Signup = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      <Header />
+      <AuthHeader />
       
       <div className="pt-32 pb-20">
         <div className="container mx-auto px-4">

@@ -366,10 +366,11 @@ export const TopBuilders = () => {
             Browse through our extensive collection of premium properties from India's most trusted developers
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button className="bg-white text-indigo-600 hover:bg-indigo-50">
+            {/* Changed button styling to be more visible */}
+            <Button className="bg-indigo-50 text-indigo-600 hover:bg-white hover:shadow-md border border-white">
               Browse Properties
             </Button>
-            <Button className="bg-indigo-700 text-white hover:bg-indigo-800">
+            <Button className="bg-indigo-700 text-white hover:bg-indigo-800 border border-indigo-500">
               Schedule a Consultation
             </Button>
           </div>
