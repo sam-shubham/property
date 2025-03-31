@@ -5,6 +5,7 @@ import { resolve } from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/', // This is important for proper asset paths
   optimizeDeps: {
     exclude: ['lucide-react'],
   },

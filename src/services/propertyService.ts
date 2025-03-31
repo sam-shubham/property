@@ -43,7 +43,7 @@ export async function getProperties(status = 'all'): Promise<Property[]> {
     if (status !== 'all') {
       q = query(propertiesRef, where('status', '==', status));
     } else {
-      q = propertiesRef;
+      q = query(propertiesRef);
     }
     
     const querySnapshot = await getDocs(q);
@@ -286,6 +286,7 @@ export interface ActivityItem {
   user: string;
   property?: string;
   time: string;
+  propertyId?: string; // Added for linking to property
 }
 
 /**
@@ -298,7 +299,8 @@ export async function getRecentActivities(): Promise<ActivityItem[]> {
     // For now, we'll just get the most recently updated properties
     
     const propertiesRef = collection(db, 'properties');
-    const q = query(propertiesRef);
+    // Add orderBy to get most recent first
+    const q = query(propertiesRef, orderBy('updatedAt', 'desc'));
     const querySnapshot = await getDocs(q);
     
     const activities: ActivityItem[] = [];
@@ -308,7 +310,7 @@ export async function getRecentActivities(): Promise<ActivityItem[]> {
       
       // Only include properties that have a status
       if (property.status && property.updatedAt) {
-        const actionMap = {
+        const actionMap: Record<string, string> = {
           'approved': 'Approved property',
           'rejected': 'Rejected property',
           'pending': 'Property submitted for review'
@@ -337,14 +339,22 @@ export async function getRecentActivities(): Promise<ActivityItem[]> {
           action,
           user: userEmail,
           property: property.title || 'Untitled Property',
-          time: new Date(property.updatedAt).toLocaleString()
+          propertyId: doc.id, // Include the property ID for linking
+          time: property.updatedAt // Use the timestamp from the property
         });
       }
     }
     
-    // Sort by date (most recent first) and limit to 10
+    // Sort by date (most recent first) with error handling and limit to 10
     return activities
-      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .sort((a, b) => {
+        try {
+          return new Date(b.time).getTime() - new Date(a.time).getTime();
+        } catch (e) {
+          console.error("Error sorting dates:", e);
+          return 0; // If date parsing fails, don't change order
+        }
+      })
       .slice(0, 10);
   } catch (error) {
     console.error("Error getting recent activities:", error);

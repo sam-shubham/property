@@ -1,0 +1,20 @@
+---
+deployment:
+  tasks:
+    # Deploy to the public_html directory of your cPanel account
+    - export DEPLOYPATH=/home/trisasof/public_html
+    
+    # Create necessary directories if they don't exist
+    - /bin/mkdir -p $DEPLOYPATH
+    
+    # Install dependencies
+    - /bin/npm install
+    
+    # Build the project
+    - /bin/npm run build
+    
+    # Copy built files to deployment path
+    - /bin/cp -R dist/* $DEPLOYPATH
+    
+    # Copy .htaccess for proper routing with React Router
+    - /bin/cp .htaccess $DEPLOYPATH
