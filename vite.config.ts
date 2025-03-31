@@ -5,9 +5,10 @@ import { resolve } from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/', // This is important for proper asset paths
+  base: '/property', // Change this if your site is in a subdirectory
   build: {
     outDir: 'dist',
+    assetsDir: 'assets',
     emptyOutDir: true,
     sourcemap: false
   },
