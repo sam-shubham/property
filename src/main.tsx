@@ -5,6 +5,9 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ScrollToTop';
 import { AuthProvider } from './contexts/AuthContext';
 import { AdminRoute } from './components/AdminRoute';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { SellerDashboard } from './pages/seller/Dashboard';
+import { AgentDashboard } from './pages/agent/Dashboard';
 
 // Import your components
 import App from './App';
@@ -25,6 +28,9 @@ import { PropertyApproval } from './pages/admin/PropertyApproval';
 import { AdminLogin } from './pages/admin/Login';
 import { Settings } from './pages/admin/Settings';
 import { AdminSetup } from './pages/AdminSetup';
+
+// Import placeholder components for missing routes
+import { PlaceholderPage } from './components/PlaceholderPage';
 
 import './index.css';
 
@@ -59,6 +65,28 @@ const router = createBrowserRouter([
       { path: '/projects/builder-floors', element: <BuilderFloors /> },
       { path: '/projects/villas', element: <Villas /> },
       { path: '/projects/farm-houses', element: <FarmHouses /> },
+      
+      // Seller routes
+      { path: '/seller/dashboard', element: <ProtectedRoute allowedRoles={['seller']}><SellerDashboard /></ProtectedRoute> },
+      { path: '/seller/properties', element: <ProtectedRoute allowedRoles={['seller']}><PlaceholderPage title="My Properties" description="View and manage all your property listings" /></ProtectedRoute> },
+      { path: '/seller/add-property', element: <ProtectedRoute allowedRoles={['seller']}><PlaceholderPage title="Add New Property" description="Create a new property listing to sell or rent" /></ProtectedRoute> },
+      { path: '/seller/property/:id', element: <ProtectedRoute allowedRoles={['seller']}><PlaceholderPage title="Property Details" description="View detailed information about your property" /></ProtectedRoute> },
+      { path: '/seller/property/:id/edit', element: <ProtectedRoute allowedRoles={['seller']}><PlaceholderPage title="Edit Property" description="Update information for your property listing" /></ProtectedRoute> },
+      { path: '/seller/inquiries', element: <ProtectedRoute allowedRoles={['seller']}><PlaceholderPage title="Inquiries" description="View and respond to inquiries about your properties" /></ProtectedRoute> },
+      { path: '/seller/schedule', element: <ProtectedRoute allowedRoles={['seller']}><PlaceholderPage title="Schedule Viewings" description="Manage appointments for property viewings" /></ProtectedRoute> },
+      { path: '/seller/settings', element: <ProtectedRoute allowedRoles={['seller']}><PlaceholderPage title="Account Settings" description="Manage your seller account settings" /></ProtectedRoute> },
+      
+      // Agent routes
+      { path: '/agent/dashboard', element: <ProtectedRoute allowedRoles={['agent']}><AgentDashboard /></ProtectedRoute> },
+      { path: '/agent/properties', element: <ProtectedRoute allowedRoles={['agent']}><PlaceholderPage title="My Properties" description="View and manage all your property listings" /></ProtectedRoute> },
+      { path: '/agent/add-property', element: <ProtectedRoute allowedRoles={['agent']}><PlaceholderPage title="Add New Property" description="Create a new property listing to sell or rent" /></ProtectedRoute> },
+      { path: '/agent/property/:id', element: <ProtectedRoute allowedRoles={['agent']}><PlaceholderPage title="Property Details" description="View detailed information about your property" /></ProtectedRoute> },
+      { path: '/agent/property/:id/edit', element: <ProtectedRoute allowedRoles={['agent']}><PlaceholderPage title="Edit Property" description="Update information for your property listing" /></ProtectedRoute> },
+      { path: '/agent/clients', element: <ProtectedRoute allowedRoles={['agent']}><PlaceholderPage title="My Clients" description="Manage your client relationships" /></ProtectedRoute> },
+      { path: '/agent/schedule', element: <ProtectedRoute allowedRoles={['agent']}><PlaceholderPage title="Appointments" description="Manage your viewing and client appointments" /></ProtectedRoute> },
+      { path: '/agent/schedule/add', element: <ProtectedRoute allowedRoles={['agent']}><PlaceholderPage title="Schedule Appointment" description="Create a new appointment with a client" /></ProtectedRoute> },
+      { path: '/agent/leads', element: <ProtectedRoute allowedRoles={['agent']}><PlaceholderPage title="Leads Management" description="Track and manage potential client leads" /></ProtectedRoute> },
+      { path: '/agent/settings', element: <ProtectedRoute allowedRoles={['agent']}><PlaceholderPage title="Account Settings" description="Manage your agent account settings" /></ProtectedRoute> },
     ],
   },
   // Admin section should be outside the RootLayout to avoid ScrollToTop issues with admin routes
@@ -70,6 +98,10 @@ const router = createBrowserRouter([
   { 
     path: '/admin/properties', 
     element: <AdminRoute><PropertyApproval /></AdminRoute> 
+  },
+  { 
+    path: '/admin/users', 
+    element: <AdminRoute><PlaceholderPage title="User Management" description="Manage all users of the platform" /></AdminRoute> 
   },
   { 
     path: '/admin/settings', 

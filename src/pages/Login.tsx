@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Mail, Lock, Eye, EyeOff, X
-} from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, X } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { AuthHeader } from '../components/AuthHeader';
 import { Footer } from '../components/Footer';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 
 export const Login = () => {
@@ -33,8 +31,8 @@ export const Login = () => {
   }, []);
 
   interface UserData {
-    // Add specific user data fields based on your Firestore schema
-    [key: string]: any;
+    userType?: string;
+    fullName?: string;
   }
 
   interface FirebaseError {
@@ -63,6 +61,7 @@ export const Login = () => {
       const adminDoc = await getDoc(doc(db, 'admins', user.uid));
       if (adminDoc.exists()) {
         // This is an admin user, redirect to admin dashboard
+        localStorage.setItem('isAdmin', 'true');
         navigate('/admin');
         return;
       }
@@ -71,11 +70,16 @@ export const Login = () => {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       
       if (userDoc.exists()) {
-        const userData = userDoc.data();
+        const userData = userDoc.data() as UserData;
         
         // Store user data in localStorage for easy access
         localStorage.setItem('userRole', userData.userType || 'buyer');
         localStorage.setItem('userName', userData.fullName || '');
+        
+        // FIXED: Always navigate to the home page first, then redirect if needed
+        navigate('/');
+        
+        // If you want to implement these dashboard pages later, you can uncomment this:
         
         // Redirect based on user type if needed
         if (userData.userType === 'agent') {
@@ -86,8 +90,20 @@ export const Login = () => {
           // Default to home page for buyers
           navigate('/');
         }
+        
       } else {
-        // User exists in Auth but not in Firestore
+        // User exists in Auth but not in Firestore, create a basic profile
+        await setDoc(doc(db, 'users', user.uid), {
+          email: user.email,
+          userType: 'buyer',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        
+        localStorage.setItem('userRole', 'buyer');
+        localStorage.setItem('userName', user.email?.split('@')[0] || '');
+        
+        // Navigate to home page
         navigate('/');
       }
       

@@ -9,7 +9,8 @@ import {
   where, 
   orderBy, 
   Timestamp,
-  deleteDoc 
+  deleteDoc,
+  DocumentSnapshot 
 } from 'firebase/firestore';
 import { db, auth } from '../config/firebase';
 
@@ -274,5 +275,79 @@ export async function getPropertyStatistics(): Promise<PropertyStatistics> {
     console.error("Error getting statistics:", error);
     // Return empty stats on error rather than throwing
     return { pending: 0, approved: 0, rejected: 0, total: 0 };
+  }
+}
+
+/**
+ * Activity item structure
+ */
+export interface ActivityItem {
+  action: string;
+  user: string;
+  property?: string;
+  time: string;
+}
+
+/**
+ * Get recent activity for the admin dashboard
+ */
+export async function getRecentActivities(): Promise<ActivityItem[]> {
+  try {
+    // Get recent property status changes
+    // In a real app, you'd have a dedicated 'activities' collection
+    // For now, we'll just get the most recently updated properties
+    
+    const propertiesRef = collection(db, 'properties');
+    const q = query(propertiesRef);
+    const querySnapshot = await getDocs(q);
+    
+    const activities: ActivityItem[] = [];
+    
+    for (const doc of querySnapshot.docs) {
+      const property = doc.data() as Property;
+      
+      // Only include properties that have a status
+      if (property.status && property.updatedAt) {
+        const actionMap = {
+          'approved': 'Approved property',
+          'rejected': 'Rejected property',
+          'pending': 'Property submitted for review'
+        };
+        
+        const action = actionMap[property.status] || 'Updated property';
+        
+        // Get the submitter's email if possible (in a real app, you'd join with user data)
+        let userEmail = 'User';
+        if (property.submittedBy) {
+          try {
+            interface UserData {
+              email?: string;
+            }
+            const userDoc = await getDoc(doc(db, 'users', property.submittedBy));
+            if (userDoc.exists()) {
+              const userData = userDoc.data() as UserData;
+              userEmail = userData.email || 'User';
+            }
+          } catch (e) {
+            console.error("Error getting user:", e);
+          }
+        }
+        
+        activities.push({
+          action,
+          user: userEmail,
+          property: property.title || 'Untitled Property',
+          time: new Date(property.updatedAt).toLocaleString()
+        });
+      }
+    }
+    
+    // Sort by date (most recent first) and limit to 10
+    return activities
+      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .slice(0, 10);
+  } catch (error) {
+    console.error("Error getting recent activities:", error);
+    return [];
   }
 }
