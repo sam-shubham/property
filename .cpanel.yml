@@ -2,7 +2,7 @@
 deployment:
   tasks:
     # Deploy to the public_html directory of your cPanel account
-    - export DEPLOYPATH=/home/trisasof/public_html
+    - export DEPLOYPATH=/home/trisasof/public_html/
     
     # Create necessary directories if they don't exist
     - /bin/mkdir -p $DEPLOYPATH
@@ -16,5 +16,16 @@ deployment:
     # Copy built files to deployment path
     - /bin/cp -R dist/* $DEPLOYPATH
     
-    # Copy .htaccess for proper routing with React Router
+    # Copy and fix the .htaccess file 
     - /bin/cp .htaccess $DEPLOYPATH
+    
+    # Set correct permissions for files and directories
+    - /bin/chmod 755 $DEPLOYPATH
+    - /bin/find $DEPLOYPATH -type d -exec /bin/chmod 755 {} \;
+    - /bin/find $DEPLOYPATH -type f -exec /bin/chmod 644 {} \;
+    
+    # Create a simple index.html if it doesn't exist
+    - /bin/touch $DEPLOYPATH/index.html
+    
+    # Create a simple 404 error page
+    - echo '<html><head><title>Page Not Found</title></head><body><h1>404 - Page Not Found</h1><p>The page you were looking for does not exist.</p></body></html>' > $DEPLOYPATH/404.shtml

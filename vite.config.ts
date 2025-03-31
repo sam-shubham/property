@@ -6,6 +6,11 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   base: '/', // This is important for proper asset paths
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: false
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
