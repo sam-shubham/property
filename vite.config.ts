@@ -5,15 +5,11 @@ import { resolve } from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/property', // Change this if your site is in a subdirectory
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     emptyOutDir: true,
-    sourcemap: false
-  },
-  optimizeDeps: {
-    exclude: ['lucide-react'],
+    sourcemap: false,
   },
   resolve: {
     alias: {
