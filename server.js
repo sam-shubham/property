@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // ✅ This must be the last route
 // Handles React Router paths
-app.get('/*', (req, res) => {
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
